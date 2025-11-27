@@ -58,32 +58,14 @@ export function Onboarding() {
       return;
     }
 
-    const { data: workspace, error: workspaceError } = await supabase
-      .from('workspaces')
-      .insert({
-        name: workspaceName,
-        slug,
-        owner_id: user.id,
-      })
-      .select()
-      .single();
-
-    if (workspaceError) {
-      setError(workspaceError.message);
-      setLoading(false);
-      return;
-    }
-
-    const { error: memberError } = await supabase
-      .from('workspace_members')
-      .insert({
-        workspace_id: workspace.id,
-        user_id: user.id,
-        role: 'admin',
+    const { data, error: createError } = await supabase
+      .rpc('create_workspace_with_member', {
+        workspace_name: workspaceName,
+        workspace_slug: slug,
       });
 
-    if (memberError) {
-      setError(memberError.message);
+    if (createError) {
+      setError(createError.message);
       setLoading(false);
       return;
     }
