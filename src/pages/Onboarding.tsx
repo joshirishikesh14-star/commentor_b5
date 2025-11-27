@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { useWorkspace } from '../contexts/WorkspaceContext';
 import { supabase } from '../lib/supabase';
 import { checkUserWorkspaces } from '../lib/workspaceHelpers';
 
@@ -10,6 +11,7 @@ export function Onboarding() {
   const [error, setError] = useState('');
   const [checking, setChecking] = useState(true);
   const { user } = useAuth();
+  const { refreshWorkspaces } = useWorkspace();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -70,6 +72,7 @@ export function Onboarding() {
       return;
     }
 
+    await refreshWorkspaces();
     navigate('/dashboard');
   };
 
