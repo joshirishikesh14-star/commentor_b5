@@ -52,10 +52,11 @@ export function Onboarding() {
       .from('workspaces')
       .select('id')
       .eq('slug', slug)
+      .eq('owner_id', user.id)
       .maybeSingle();
 
     if (existingWorkspace) {
-      setError('A workspace with this name already exists. Please choose a different name.');
+      setError('You already have a workspace with this name. Please choose a different name.');
       setLoading(false);
       return;
     }
