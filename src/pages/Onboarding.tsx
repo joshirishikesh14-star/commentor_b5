@@ -148,7 +148,7 @@ export function Onboarding() {
           <div className="mt-4 text-center">
             <button
               type="button"
-              onClick={() => navigate('/shared-with-me')}
+              onClick={() => navigate('/dashboard')}
               className="text-sm text-slate-600 hover:text-slate-900 transition"
             >
               Skip for now - I'll join an existing workspace

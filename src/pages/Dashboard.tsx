@@ -38,6 +38,8 @@ export function Dashboard() {
   useEffect(() => {
     if (currentWorkspace && user) {
       fetchDashboardData();
+    } else if (user && currentWorkspace === null) {
+      setLoading(false);
     }
   }, [currentWorkspace, user]);
 
@@ -105,6 +107,42 @@ export function Dashboard() {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  if (!currentWorkspace) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="text-center max-w-md">
+          <div className="mb-6">
+            <svg className="w-32 h-32 mx-auto text-slate-300" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+              <path d="M2 17L12 22L22 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M2 12L12 17L22 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </div>
+          <h2 className="text-2xl font-semibold text-slate-900 mb-3">No Workspace Yet</h2>
+          <p className="text-slate-600 mb-6">
+            You don't have a workspace yet. Create one to start collecting feedback, or wait for someone to invite you to their workspace.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <Link
+              to="/onboarding"
+              className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition"
+            >
+              <Plus className="w-5 h-5" />
+              <span>Create Workspace</span>
+            </Link>
+            <Link
+              to="/shared-with-me"
+              className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-slate-100 text-slate-700 rounded-lg font-medium hover:bg-slate-200 transition"
+            >
+              <MessageSquare className="w-5 h-5" />
+              <span>View Invitations</span>
+            </Link>
+          </div>
+        </div>
       </div>
     );
   }
