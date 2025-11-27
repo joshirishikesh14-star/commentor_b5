@@ -144,6 +144,16 @@ export function Onboarding() {
               {loading ? 'Creating workspace...' : 'Create workspace'}
             </button>
           </form>
+
+          <div className="mt-4 text-center">
+            <button
+              type="button"
+              onClick={() => navigate('/shared-with-me')}
+              className="text-sm text-slate-600 hover:text-slate-900 transition"
+            >
+              Skip for now - I'll join an existing workspace
+            </button>
+          </div>
         </div>
       </div>
     </div>
