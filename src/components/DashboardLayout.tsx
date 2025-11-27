@@ -31,11 +31,6 @@ export function DashboardLayout() {
     );
   }
 
-  if (!currentWorkspace && workspaces.length === 0) {
-    navigate('/onboarding', { replace: true });
-    return null;
-  }
-
   const handleSignOut = async () => {
     await signOut();
     navigate('/login');
