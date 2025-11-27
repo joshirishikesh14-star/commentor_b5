@@ -126,22 +126,13 @@ export function Dashboard() {
           <p className="text-slate-600 mb-6">
             You don't have a workspace yet. Create one to start collecting feedback, or wait for someone to invite you to their workspace.
           </p>
-          <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <Link
-              to="/onboarding"
-              className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition"
-            >
-              <Plus className="w-5 h-5" />
-              <span>Create Workspace</span>
-            </Link>
-            <Link
-              to="/shared-with-me"
-              className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-slate-100 text-slate-700 rounded-lg font-medium hover:bg-slate-200 transition"
-            >
-              <MessageSquare className="w-5 h-5" />
-              <span>View Invitations</span>
-            </Link>
-          </div>
+          <Link
+            to="/onboarding"
+            className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition"
+          >
+            <Plus className="w-5 h-5" />
+            <span>Create Workspace</span>
+          </Link>
         </div>
       </div>
     );
