@@ -76,12 +76,12 @@ function getOptimalSelector(element) {
   while (current && current !== document.body) {
     let selector = current.tagName.toLowerCase();
 
-    // Add classes (exclude commentsync classes)
+    // Add classes (exclude echo classes)
     if (current.className) {
       const classes = current.className
         .trim()
         .split(/\s+/)
-        .filter(c => c && !c.startsWith('commentsync-'));
+        .filter(c => c && !c.startsWith('echo-'));
 
       if (classes.length > 0) {
         selector += '.' + classes.slice(0, 2).join('.');
@@ -161,12 +161,12 @@ const jumpToElement = (selector: string) => {
     });
 
     // Remove existing highlight
-    const existingHighlight = iframeDoc.querySelector('.commentsync-highlight');
+    const existingHighlight = iframeDoc.querySelector('.echo-highlight');
     if (existingHighlight) existingHighlight.remove();
 
     // Create new highlight
     const highlight = iframeDoc.createElement('div');
-    highlight.className = 'commentsync-highlight';
+    highlight.className = 'echo-highlight';
     highlight.style.cssText = `
       position: absolute;
       border: 3px solid #3B82F6;

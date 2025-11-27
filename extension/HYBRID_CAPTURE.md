@@ -50,9 +50,9 @@ function captureHTMLSnapshot() {
   const iframes = clonedDoc.querySelectorAll('iframe');
   iframes.forEach(iframe => iframe.remove());
 
-  // 4. Remove CommentSync elements
-  const commentsyncElements = clonedDoc.querySelectorAll('[id^="commentsync"]');
-  commentsyncElements.forEach(el => el.remove());
+  // 4. Remove Echo elements
+  const echoElements = clonedDoc.querySelectorAll('[id^="echo"]');
+  echoElements.forEach(el => el.remove());
 
   // 5. Add base URL for relative links
   const baseTag = clonedDoc.createElement('base');
@@ -215,7 +215,7 @@ const commentPayload = {
 ❌ **Scripts** - Prevents XSS attacks
 ❌ **Iframes** - Avoids cross-origin issues
 ❌ **Event handlers** - onclick, onload, etc. stripped by browser
-❌ **CommentSync elements** - Prevents recursion
+❌ **Echo elements** - Prevents recursion
 
 ### What's Preserved
 ✅ **HTML structure** - All DOM elements

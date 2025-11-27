@@ -258,11 +258,11 @@ export function PublicReview() {
 
       element.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
-      const existingHighlight = iframeDoc.querySelector('.commentsync-highlight');
+      const existingHighlight = iframeDoc.querySelector('.echo-highlight');
       if (existingHighlight) existingHighlight.remove();
 
       const highlight = iframeDoc.createElement('div');
-      highlight.className = 'commentsync-highlight';
+      highlight.className = 'echo-highlight';
       highlight.style.cssText = `
         position: absolute;
         border: 3px solid #3B82F6;
@@ -649,7 +649,7 @@ export function PublicReview() {
                         </div>
 
                         <p className="text-slate-300 mb-6 leading-relaxed">
-                          The CommentSync Chrome Extension works on <strong>any website</strong> without restrictions.
+                          The Echo Chrome Extension works on <strong>any website</strong> without restrictions.
                           It bypasses all security limitations and lets you add comments directly on the live site.
                         </p>
 

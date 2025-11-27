@@ -1,4 +1,4 @@
-# CommentSync Chrome Extension
+# Echo Chrome Extension
 
 This Chrome extension allows testers to add contextual feedback on any web application, including apps that use OAuth authentication (Google, GitHub, etc).
 
@@ -9,7 +9,7 @@ This Chrome extension allows testers to add contextual feedback on any web appli
 - ✅ Click on any element to add comments
 - ✅ Automatic DOM selector recording
 - ✅ Screenshot capture with scroll position
-- ✅ Real-time sync with CommentSync dashboard
+- ✅ Real-time sync with Echo dashboard
 - ✅ Visual element highlighting
 
 ### Full Feature Parity with Web App
@@ -58,7 +58,7 @@ Also update the dashboard URL:
 ```javascript
 function openDashboard(e) {
   e.preventDefault();
-  chrome.tabs.create({ url: 'https://your-commentsync-dashboard.com' });
+  chrome.tabs.create({ url: 'https://your-echo-dashboard.com' });
 }
 ```
 
@@ -68,15 +68,15 @@ function openDashboard(e) {
 2. Enable "Developer mode" (toggle in top right)
 3. Click "Load unpacked"
 4. Select the `extension` folder
-5. The CommentSync extension is now installed!
+5. The Echo extension is now installed!
 
 ## Usage
 
 ### For Testers:
 
 **Initial Setup:**
-1. Click the CommentSync extension icon
-2. Sign in with your CommentSync account credentials
+1. Click the Echo extension icon
+2. Sign in with your Echo account credentials
 3. Select the app you want to test from the dropdown
 4. Extension automatically navigates to the app's URL
 5. Click "Start Recording" to activate commenting
@@ -105,7 +105,7 @@ function openDashboard(e) {
 
 ### For Authors/Product Owners:
 
-1. Log into CommentSync dashboard
+1. Log into Echo dashboard
 2. View all comments for your app
 3. Click on any comment to see:
    - Page URL
@@ -121,7 +121,7 @@ Unlike the iframe approach, the Chrome extension:
 1. **Injects content scripts** into the target webpage
 2. **Runs alongside** the page without interfering
 3. **Captures interactions** (clicks, DOM state, screenshots)
-4. **Sends data** to CommentSync via background service worker
+4. **Sends data** to Echo via background service worker
 5. **Works with OAuth** because the page isn't in an iframe
 
 ## Architecture

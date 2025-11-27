@@ -1,4 +1,4 @@
-# CommentSync Extension Setup Guide
+# Echo Extension Setup Guide
 
 ## Quick Start
 
@@ -51,7 +51,7 @@ function openDashboard(e) {
 
 ### Test as a Tester:
 
-1. Click the CommentSync extension icon (puzzle piece icon in Chrome toolbar)
+1. Click the Echo extension icon (puzzle piece icon in Chrome toolbar)
 2. Sign in with your email/password
 3. Select an app from the dropdown
 4. Click "Start Recording"
@@ -63,7 +63,7 @@ function openDashboard(e) {
 
 ### Test as an Author:
 
-1. Open your CommentSync dashboard
+1. Open your Echo dashboard
 2. Go to the app you tested
 3. Click "View Comments"
 4. You should see all the comments
@@ -83,12 +83,12 @@ function openDashboard(e) {
 ### For Osmos (Your Client):
 
 **Setup:**
-1. Create an "Osmos UAT" app in CommentSync dashboard
+1. Create an "Osmos UAT" app in Echo dashboard
 2. Give testers the extension and login credentials
 
 **Testing:**
 1. Tester installs extension
-2. Signs into CommentSync extension
+2. Signs into Echo extension
 3. Selects "Osmos UAT" app
 4. Clicks "Start Recording"
 5. Goes to apps.osmos.ai
@@ -98,7 +98,7 @@ function openDashboard(e) {
 9. All comments save automatically
 
 **Review:**
-1. Product owner logs into CommentSync dashboard
+1. Product owner logs into Echo dashboard
 2. Views all comments for "Osmos UAT"
 3. Each comment shows:
    - Page URL
@@ -114,7 +114,7 @@ If you want users to install from the Chrome Web Store instead of manually:
 1. Run `./build.sh` to create a zip file
 2. Go to [Chrome Web Store Developer Dashboard](https://chrome.google.com/webstore/devconsole/)
 3. Pay $5 one-time developer fee
-4. Upload `commentsync-extension.zip`
+4. Upload `echo-extension.zip`
 5. Fill in store listing details
 6. Submit for review (1-3 days)
 

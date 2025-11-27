@@ -8,11 +8,11 @@
   const appId = scriptTag?.getAttribute('data-app-id');
 
   if (!appId) {
-    console.error('CommentSync: data-app-id attribute is required');
+    console.error('Echo: data-app-id attribute is required');
     return;
   }
 
-  class CommentSync {
+  class Echo {
     constructor(appId) {
       this.appId = appId;
       this.threads = [];
@@ -33,7 +33,7 @@
 
     createOverlay() {
       this.overlayRoot = document.createElement('div');
-      this.overlayRoot.id = 'commentsync-overlay';
+      this.overlayRoot.id = 'echo-overlay';
       this.overlayRoot.style.cssText = `
         position: fixed;
         top: 0;
@@ -338,7 +338,7 @@
 
     attachClickListener() {
       this.clickHandler = (e) => {
-        if (e.target.closest('#commentsync-overlay')) return;
+        if (e.target.closest('#echo-overlay')) return;
 
         e.preventDefault();
         e.stopPropagation();
@@ -427,7 +427,7 @@
           this.threads = [];
         }
       } catch (error) {
-        console.error('CommentSync: Failed to load threads', error);
+        console.error('Echo: Failed to load threads', error);
         this.threads = [];
       }
     }
@@ -603,7 +603,7 @@
           this.renderCommentPins();
         }
       } catch (error) {
-        console.error('CommentSync: Failed to post comment', error);
+        console.error('Echo: Failed to post comment', error);
       }
     }
 
@@ -621,5 +621,5 @@
     }
   }
 
-  new CommentSync(appId);
+  new Echo(appId);
 })();

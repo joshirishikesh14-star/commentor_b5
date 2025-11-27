@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "CommentSync",
+  "name": "Echo",
   "version": "1.0.0",
-  "description": "Universal Contextual Feedback Platform - Capture UAT feedback on any web application",
+  "description": "Universal Feedback Platform - Capture UAT feedback on any web application",
   "permissions": [
     "activeTab",
     "storage",

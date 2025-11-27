@@ -1,4 +1,4 @@
-# CommentSync - Architecture & Implementation Guide
+# Echo - Architecture & Implementation Guide
 
 ## Table of Contents
 1. [System Overview](#system-overview)
@@ -16,7 +16,7 @@
 
 ## System Overview
 
-CommentSync is a collaborative feedback platform that enables teams to add contextual, spatial comments to any web application—similar to Figma's commenting system but for live websites.
+Echo is a collaborative feedback platform that enables teams to add contextual, spatial comments to any web application—similar to Figma's commenting system but for live websites.
 
 ### Core Concepts
 
@@ -876,7 +876,7 @@ useEffect(() => {
 Creates a floating toolbar:
 ```javascript
 const toolbar = document.createElement('div');
-toolbar.id = 'commentsync-toolbar';
+toolbar.id = 'echo-toolbar';
 toolbar.innerHTML = `
   <button id="comment-mode-btn">💬 Add Comment (C)</button>
   <div id="comment-count">0 comments</div>
@@ -910,7 +910,7 @@ Visual markers showing comment locations:
 ```javascript
 function renderCommentPin(thread) {
   const pin = document.createElement('div');
-  pin.className = 'commentsync-pin';
+  pin.className = 'echo-pin';
   pin.style.left = `${thread.position_data.x}px`;
   pin.style.top = `${thread.position_data.y}px`;
   pin.textContent = thread.comments.length;
@@ -927,9 +927,9 @@ function renderCommentPin(thread) {
 ```javascript
 function showCommentForm({ x, y, pageX, pageY }) {
   const modal = document.createElement('div');
-  modal.className = 'commentsync-modal';
+  modal.className = 'echo-modal';
   modal.innerHTML = `
-    <div class="commentsync-form">
+    <div class="echo-form">
       <h3>Add Comment</h3>
       <input type="text" id="commenter-name" placeholder="Your name" />
       <input type="email" id="commenter-email" placeholder="Your email" />
@@ -1023,7 +1023,7 @@ function subscribeToThreads() {
 
 The SDK includes embedded CSS for all UI elements:
 ```css
-.commentsync-toolbar {
+.echo-toolbar {
   position: fixed;
   top: 20px;
   right: 20px;
@@ -1034,7 +1034,7 @@ The SDK includes embedded CSS for all UI elements:
   padding: 12px;
 }
 
-.commentsync-pin {
+.echo-pin {
   position: absolute;
   width: 32px;
   height: 32px;
@@ -1254,7 +1254,7 @@ export async function syncThreadToJira(
 
     const result = await jiraClient.createIssue({
       project: jiraConfig.defaultProject,
-      summary: `[CommentSync] ${thread.page_url}`,
+      summary: `[Echo] ${thread.page_url}`,
       description: `
 Location: ${thread.page_url}
 Position: (${thread.position_data.x}, ${thread.position_data.y})
@@ -1518,7 +1518,7 @@ const Dashboard = lazy(() => import('./pages/Dashboard'));
 
 ## Conclusion
 
-CommentSync is built on a solid foundation of:
+Echo is built on a solid foundation of:
 - **Multi-tenant architecture** with workspace isolation
 - **Role-based access control** enforced at database level
 - **Real-time collaboration** via Supabase subscriptions

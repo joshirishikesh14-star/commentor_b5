@@ -150,7 +150,7 @@ const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || SUPABASE_CONFI
 
 6. **Reload extension:**
    - Open `chrome://extensions`
-   - Click reload button on CommentSync extension
+   - Click reload button on Echo extension
 
 7. **Clear old auth tokens:**
    - Open extension popup

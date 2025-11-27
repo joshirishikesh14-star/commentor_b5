@@ -1,6 +1,6 @@
 # Chrome Extension Installation Guide
 
-Follow these simple steps to install the CommentSync Chrome Extension:
+Follow these simple steps to install the Echo Chrome Extension:
 
 ## Step 1: Download the Extension
 
@@ -16,13 +16,13 @@ The extension files are located in the `/extension` folder of this project.
 
 4. Navigate to and select the `extension` folder
 
-5. The CommentSync extension icon should now appear in your Chrome toolbar
+5. The Echo extension icon should now appear in your Chrome toolbar
 
 ## Step 3: Sign In
 
-1. Click the CommentSync extension icon in your toolbar
+1. Click the Echo extension icon in your toolbar
 
-2. Sign in with your CommentSync account credentials (same login as the web dashboard)
+2. Sign in with your Echo account credentials (same login as the web dashboard)
 
 3. The extension will automatically load all apps you own or were invited to collaborate on
 
@@ -70,4 +70,4 @@ Unlike the web-based review interface, the extension has no restrictions and wor
 
 ## Need Help?
 
-Contact your CommentSync administrator or check the main documentation at `/extension/README.md`
+Contact your Echo administrator or check the main documentation at `/extension/README.md`

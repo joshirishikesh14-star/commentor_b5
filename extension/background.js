@@ -3,11 +3,11 @@ importScripts('supabase.config.js');
 let activeSession = null;
 
 chrome.runtime.onInstalled.addListener(() => {
-  console.log('CommentSync extension installed');
+  console.log('Echo extension installed');
 });
 
 chrome.runtime.onStartup.addListener(async () => {
-  console.log('🚀 CommentSync: Extension startup');
+  console.log('🚀 Echo: Extension startup');
   const stored = await chrome.storage.local.get('activeSession');
   if (stored.activeSession) {
     activeSession = stored.activeSession;
@@ -17,7 +17,7 @@ chrome.runtime.onStartup.addListener(async () => {
 
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
   if (changeInfo.status === 'complete' && activeSession && activeSession.tabId === tabId) {
-    console.log('🔄 CommentSync: Tab reloaded, re-activating session');
+    console.log('🔄 Echo: Tab reloaded, re-activating session');
     chrome.tabs.sendMessage(tabId, {
       type: 'SESSION_ACTIVE',
       session: activeSession
@@ -33,7 +33,7 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type === 'START_SESSION') {
-    console.log('🎬 CommentSync Background: Starting session', message);
+    console.log('🎬 Echo Background: Starting session', message);
     activeSession = {
       appId: message.appId,
       userId: message.userId,
@@ -81,7 +81,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 
   if (message.type === 'SAVE_COMMENT') {
-    console.log('💾 CommentSync Background: Saving comment', message.data);
+    console.log('💾 Echo Background: Saving comment', message.data);
     handleSaveComment(message.data, sender.tab)
       .then(() => {
         console.log('✅ Comment saved successfully');

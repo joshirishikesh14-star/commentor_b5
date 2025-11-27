@@ -1,10 +1,10 @@
-# CommentSync
+# Echo
 
 Universal Contextual Feedback Platform for Web Applications
 
 ## Overview
 
-CommentSync is a collaborative feedback platform that enables teams to annotate, discuss, and track feedback on any web application in real-time—similar to Figma's commenting system but for any website.
+Echo is a collaborative feedback platform that enables teams to annotate, discuss, and track feedback on any web application in real-time—similar to Figma's commenting system but for any website.
 
 ## Features Built
 
@@ -273,7 +273,7 @@ Comments update in real-time:
 Seamless bi-directional sync with Jira:
 - **Authentication**: Secure API token-based authentication
 - **Issue Creation**: Automatically create Jira issues from comment threads
-- **Bi-directional Sync**: Comments sync both ways between CommentSync and Jira
+- **Bi-directional Sync**: Comments sync both ways between Echo and Jira
 - **Status Mapping**: Thread status (Open/Resolved) maps to Jira issue status
 - **Comment Type Mapping**: Bug comments become Bug issues, others become Tasks
 - **Auto-sync Option**: Optionally enable automatic sync for new threads

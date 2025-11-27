@@ -1,4 +1,4 @@
-let isEchoActive = false;
+let isCommentSyncActive = false;
 let selectedElement = null;
 let commentWidget = null;
 let highlightOverlay = null;
@@ -21,13 +21,13 @@ function getCurrentDomain() {
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type === 'SESSION_ACTIVE') {
-    console.log('✅ Echo: Session activated', message.session);
+    console.log('✅ CommentSync: Session activated', message.session);
 
     const currentDomain = getCurrentDomain();
     const sessionDomain = message.session.appDomain;
 
     if (currentDomain && sessionDomain && currentDomain !== sessionDomain) {
-      console.error('❌ Echo: Domain mismatch!', {
+      console.error('❌ CommentSync: Domain mismatch!', {
         current: currentDomain,
         expected: sessionDomain
       });
@@ -37,18 +37,18 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     }
 
     activeSession = message.session;
-    isEchoActive = true;
+    isCommentSyncActive = true;
     loadExistingComments();
     showFAB();
     document.body.style.cursor = 'crosshair';
-    console.log('✅ Echo: Ready to capture feedback - click any element');
+    console.log('✅ CommentSync: Ready to capture feedback - click any element');
     sendResponse({ success: true });
     return true;
   }
 
   if (message.type === 'SESSION_STOPPED') {
-    console.log('🛑 Echo: Session stopped');
-    isEchoActive = false;
+    console.log('🛑 CommentSync: Session stopped');
+    isCommentSyncActive = false;
     activeSession = null;
     clearAllPins();
     hideFAB();
@@ -122,7 +122,7 @@ function displayCommentPins() {
     const pinY = (pos.y || 0) - scrollY;
 
     const pin = document.createElement('div');
-    pin.className = 'echo-pin';
+    pin.className = 'commentsync-pin';
     pin.dataset.threadId = thread.id;
     pin.style.cssText = `
       position: absolute;
@@ -182,7 +182,7 @@ function getOptimalSelector(element) {
     let selector = current.tagName.toLowerCase();
 
     if (current.className && typeof current.className === 'string') {
-      const classes = current.className.trim().split(/\s+/).filter(c => c && !c.startsWith('echo-'));
+      const classes = current.className.trim().split(/\s+/).filter(c => c && !c.startsWith('commentsync-'));
       if (classes.length > 0) {
         selector += '.' + classes.slice(0, 2).join('.');
       }
@@ -208,7 +208,7 @@ function getOptimalSelector(element) {
 
 function createHighlightOverlay() {
   const overlay = document.createElement('div');
-  overlay.id = 'echo-highlight-overlay';
+  overlay.id = 'commentsync-highlight-overlay';
   overlay.style.cssText = `
     position: absolute;
     border: 2px solid #3B82F6;
@@ -242,12 +242,12 @@ function hideHighlight() {
 }
 
 document.addEventListener('mouseover', (e) => {
-  if (!isEchoActive || commentWidget) return;
+  if (!isCommentSyncActive || commentWidget) return;
 
   const target = e.target;
-  if (target.closest('#echo-widget') ||
-      target.closest('.echo-pin') ||
-      target.closest('.echo-thread-viewer')) {
+  if (target.closest('#commentsync-widget') ||
+      target.closest('.commentsync-pin') ||
+      target.closest('.commentsync-thread-viewer')) {
     return;
   }
 
@@ -256,30 +256,30 @@ document.addEventListener('mouseover', (e) => {
 });
 
 document.addEventListener('click', (e) => {
-  console.log('👆 Echo: Click detected', {
-    isActive: isEchoActive,
+  console.log('👆 CommentSync: Click detected', {
+    isActive: isCommentSyncActive,
     hasWidget: !!commentWidget,
     target: e.target.tagName,
     targetClasses: e.target.className
   });
 
-  if (!isEchoActive) {
-    console.log('⚠️ Echo: Session not active - start recording first');
+  if (!isCommentSyncActive) {
+    console.log('⚠️ CommentSync: Session not active - start recording first');
     return;
   }
 
   if (commentWidget) {
-    console.log('📋 Echo: Widget already open');
+    console.log('📋 CommentSync: Widget already open');
     return;
   }
 
   const target = e.target;
-  if (target.closest('#echo-widget') ||
-      target.closest('.echo-pin') ||
-      target.closest('.echo-thread-viewer') ||
-      target.closest('#echo-fab') ||
-      target.closest('#echo-panel')) {
-    console.log('🚫 Echo: Clicked on Echo UI element, ignoring');
+  if (target.closest('#commentsync-widget') ||
+      target.closest('.commentsync-pin') ||
+      target.closest('.commentsync-thread-viewer') ||
+      target.closest('#commentsync-fab') ||
+      target.closest('#commentsync-panel')) {
+    console.log('🚫 CommentSync: Clicked on CommentSync UI element, ignoring');
     return;
   }
 
@@ -287,7 +287,7 @@ document.addEventListener('click', (e) => {
   e.stopPropagation();
 
   const selector = getOptimalSelector(target);
-  console.log('✅ Echo: Element selected', {
+  console.log('✅ CommentSync: Element selected', {
     tag: target.tagName,
     id: target.id,
     classes: target.className,
@@ -303,7 +303,7 @@ function showCommentWidget(element, x, y) {
   }
 
   const widget = document.createElement('div');
-  widget.id = 'echo-widget';
+  widget.id = 'commentsync-widget';
 
   const widgetWidth = 320;
   const widgetHeight = 220;
@@ -342,18 +342,18 @@ function showCommentWidget(element, x, y) {
   widget.innerHTML = `
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
       <h3 style="margin: 0; font-size: 14px; font-weight: 600; color: #1e293b;">Add Comment</h3>
-      <button id="echo-close" style="background: none; border: none; font-size: 20px; cursor: pointer; color: #64748b; padding: 0; width: 24px; height: 24px;">×</button>
+      <button id="commentsync-close" style="background: none; border: none; font-size: 20px; cursor: pointer; color: #64748b; padding: 0; width: 24px; height: 24px;">×</button>
     </div>
-    <textarea id="echo-textarea"
+    <textarea id="commentsync-textarea"
       placeholder="Describe the issue or feedback..."
       style="width: 100%; height: 100px; padding: 8px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 13px; resize: none; font-family: inherit; margin-bottom: 12px; box-sizing: border-box;"
     ></textarea>
     <div style="display: flex; gap: 8px;">
-      <button id="echo-submit"
+      <button id="commentsync-submit"
         style="flex: 1; background: #3B82F6; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-size: 13px; font-weight: 500; cursor: pointer;">
         Submit
       </button>
-      <button id="echo-cancel"
+      <button id="commentsync-cancel"
         style="flex: 1; background: #f1f5f9; color: #64748b; border: none; padding: 8px 16px; border-radius: 6px; font-size: 13px; font-weight: 500; cursor: pointer;">
         Cancel
       </button>
@@ -362,12 +362,12 @@ function showCommentWidget(element, x, y) {
 
   document.body.appendChild(widget);
 
-  const textarea = widget.querySelector('#echo-textarea');
+  const textarea = widget.querySelector('#commentsync-textarea');
   textarea.focus();
 
-  widget.querySelector('#echo-close').onclick = closeWidget;
-  widget.querySelector('#echo-cancel').onclick = closeWidget;
-  widget.querySelector('#echo-submit').onclick = () => submitComment(element, textarea.value);
+  widget.querySelector('#commentsync-close').onclick = closeWidget;
+  widget.querySelector('#commentsync-cancel').onclick = closeWidget;
+  widget.querySelector('#commentsync-submit').onclick = () => submitComment(element, textarea.value);
 
   commentWidget = widget;
 }
@@ -390,8 +390,8 @@ function captureHTMLSnapshot() {
   const iframes = clonedDoc.querySelectorAll('iframe');
   iframes.forEach(iframe => iframe.remove());
 
-  const echoElements = clonedDoc.querySelectorAll('[id^="echo"], [class*="echo"]');
-  echoElements.forEach(el => el.remove());
+  const commentsyncElements = clonedDoc.querySelectorAll('[id^="commentsync"], [class*="commentsync"]');
+  commentsyncElements.forEach(el => el.remove());
 
   const head = clonedDoc.querySelector('head');
   const baseTag = clonedDoc.createElement('base');
@@ -464,7 +464,7 @@ async function submitComment(element, text) {
 
 function showThreadViewer(thread) {
   const viewer = document.createElement('div');
-  viewer.className = 'echo-thread-viewer';
+  viewer.className = 'commentsync-thread-viewer';
   viewer.style.cssText = `
     position: fixed;
     right: 20px;
@@ -801,7 +801,7 @@ function showFAB() {
   if (fabButton) return;
 
   fabButton = document.createElement('button');
-  fabButton.id = 'echo-fab';
+  fabButton.id = 'commentsync-fab';
   fabButton.style.cssText = `
     position: fixed;
     bottom: 24px;
@@ -870,7 +870,7 @@ function showCommentsPanel() {
   commentsPanelOpen = true;
 
   commentsPanel = document.createElement('div');
-  commentsPanel.id = 'echo-panel';
+  commentsPanel.id = 'commentsync-panel';
   commentsPanel.style.cssText = `
     position: fixed;
     top: 0;
@@ -915,7 +915,7 @@ function renderCommentsPanelContent() {
     <div style="padding: 20px; border-bottom: 1px solid #e5e7eb; background: #3B82F6; color: white;">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
         <h2 style="margin: 0; font-size: 18px; font-weight: 600;">All Comments</h2>
-        <button id="echo-panel-close" style="background: rgba(255,255,255,0.2); border: none; color: white; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; font-size: 20px; display: flex; align-items: center; justify-content: center;">×</button>
+        <button id="commentsync-panel-close" style="background: rgba(255,255,255,0.2); border: none; color: white; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; font-size: 20px; display: flex; align-items: center; justify-content: center;">×</button>
       </div>
       <div style="font-size: 13px; opacity: 0.9;">${totalCount} total · ${openCount} open · ${resolvedCount} resolved</div>
       <div style="font-size: 12px; opacity: 0.75; margin-top: 4px;">${currentPageCount} on this page</div>
@@ -923,16 +923,16 @@ function renderCommentsPanelContent() {
 
     <div style="padding: 12px 16px; border-bottom: 1px solid #e5e7eb; background: #f9fafb;">
       <div style="display: flex; gap: 8px;">
-        <button id="echo-filter-all" style="flex: 1; padding: 8px 12px; border: ${showResolvedComments ? '2px solid #3B82F6' : '1px solid #e5e7eb'}; background: ${showResolvedComments ? '#EFF6FF' : 'white'}; color: ${showResolvedComments ? '#3B82F6' : '#64748b'}; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.2s;">
+        <button id="commentsync-filter-all" style="flex: 1; padding: 8px 12px; border: ${showResolvedComments ? '2px solid #3B82F6' : '1px solid #e5e7eb'}; background: ${showResolvedComments ? '#EFF6FF' : 'white'}; color: ${showResolvedComments ? '#3B82F6' : '#64748b'}; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.2s;">
           All (${totalCount})
         </button>
-        <button id="echo-filter-open" style="flex: 1; padding: 8px 12px; border: ${!showResolvedComments ? '2px solid #3B82F6' : '1px solid #e5e7eb'}; background: ${!showResolvedComments ? '#EFF6FF' : 'white'}; color: ${!showResolvedComments ? '#3B82F6' : '#64748b'}; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.2s;">
+        <button id="commentsync-filter-open" style="flex: 1; padding: 8px 12px; border: ${!showResolvedComments ? '2px solid #3B82F6' : '1px solid #e5e7eb'}; background: ${!showResolvedComments ? '#EFF6FF' : 'white'}; color: ${!showResolvedComments ? '#3B82F6' : '#64748b'}; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.2s;">
           Open (${openCount})
         </button>
       </div>
     </div>
 
-    <div style="flex: 1; overflow-y: auto; padding: 16px;" id="echo-threads-container">
+    <div style="flex: 1; overflow-y: auto; padding: 16px;" id="commentsync-threads-container">
       ${filteredThreads.length === 0 ?
         `<div style="text-align: center; padding: 40px 20px; color: #94a3b8;">
           <div style="font-size: 48px; margin-bottom: 16px;">\u{1F4AC}</div>
@@ -945,21 +945,21 @@ function renderCommentsPanelContent() {
     </div>
 
     <div style="padding: 16px; border-top: 1px solid #e5e7eb; background: #f9fafb;">
-      <button id="echo-stop-recording" style="width: 100%; background: #EF4444; color: white; border: none; padding: 12px 16px; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; transition: background 0.2s;">
+      <button id="commentsync-stop-recording" style="width: 100%; background: #EF4444; color: white; border: none; padding: 12px 16px; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; transition: background 0.2s;">
         Stop Recording
       </button>
     </div>
   `;
 
-  commentsPanel.querySelector('#echo-panel-close').addEventListener('click', hideCommentsPanel);
-  commentsPanel.querySelector('#echo-stop-recording').addEventListener('click', handleStopFromPanel);
+  commentsPanel.querySelector('#commentsync-panel-close').addEventListener('click', hideCommentsPanel);
+  commentsPanel.querySelector('#commentsync-stop-recording').addEventListener('click', handleStopFromPanel);
 
-  commentsPanel.querySelector('#echo-filter-all').addEventListener('click', () => {
+  commentsPanel.querySelector('#commentsync-filter-all').addEventListener('click', () => {
     showResolvedComments = true;
     renderCommentsPanelContent();
   });
 
-  commentsPanel.querySelector('#echo-filter-open').addEventListener('click', () => {
+  commentsPanel.querySelector('#commentsync-filter-open').addEventListener('click', () => {
     showResolvedComments = false;
     renderCommentsPanelContent();
   });
@@ -1045,7 +1045,7 @@ function scrollToThread(thread) {
 
   hideCommentsPanel();
 
-  const pin = document.querySelector(`.echo-pin[data-thread-id="${thread.id}"]`);
+  const pin = document.querySelector(`.commentsync-pin[data-thread-id="${thread.id}"]`);
   if (pin) {
     pin.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
@@ -1101,7 +1101,7 @@ function refreshCommentsPanel() {
 function handleStopFromPanel() {
   if (confirm('Are you sure you want to stop recording feedback?')) {
     chrome.runtime.sendMessage({ type: 'STOP_SESSION', tabId: null }, () => {
-      isEchoActive = false;
+      isCommentSyncActive = false;
       activeSession = null;
       clearAllPins();
       hideFAB();

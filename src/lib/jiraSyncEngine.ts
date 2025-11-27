@@ -127,7 +127,7 @@ export class JiraSyncEngine {
     }
 
     const firstComment = thread.comments?.[0];
-    const summary = `[CommentSync] ${thread.app?.name || 'App'} - ${thread.page_url}`;
+    const summary = `[Echo] ${thread.app?.name || 'App'} - ${thread.page_url}`;
     const description = this.buildIssueDescription(thread, firstComment);
 
     const issue = await this.jiraService.createIssue(
@@ -288,7 +288,7 @@ export class JiraSyncEngine {
 
   private buildIssueDescription(thread: any, firstComment: any): string {
     const lines = [
-      `Feedback from CommentSync`,
+      `Feedback from Echo`,
       ``,
       `App: ${thread.app?.name || 'Unknown'}`,
       `Page: ${thread.page_url}`,

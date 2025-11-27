@@ -146,7 +146,7 @@ After reloading the extension:
    - Should see "Comment saved successfully!" ✅
 
 5. **Verify in dashboard**
-   - Open CommentSync dashboard
+   - Open Echo dashboard
    - Navigate to app
    - Should see new comment with screenshot
 

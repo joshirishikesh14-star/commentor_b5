@@ -37,8 +37,8 @@ export function Login() {
               <MessageSquare className="w-7 h-7 text-white" />
             </div>
           </div>
-          <h1 className="text-3xl font-bold text-slate-900 mb-2">CommentSync</h1>
-          <p className="text-slate-600">Universal Contextual Feedback Platform</p>
+          <h1 className="text-3xl font-bold text-slate-900 mb-2">Echo</h1>
+          <p className="text-slate-600">Universal Feedback Platform</p>
         </div>
 
         <div className="bg-white rounded-2xl shadow-lg p-8">

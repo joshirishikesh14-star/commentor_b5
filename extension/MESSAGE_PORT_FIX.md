@@ -182,7 +182,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type === 'SESSION_ACTIVE') {
     activeSession = message.session;
-    isCommentSyncActive = true;
+    isEchoActive = true;
     loadExistingComments();
     sendResponse({ success: true });
     return true; // ✅ Keep port open

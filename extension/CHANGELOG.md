@@ -205,7 +205,7 @@ For issues or questions:
 1. Check `/extension/README.md`
 2. Check `/extension/FEATURE_PARITY.md`
 3. Check `/extension/DATA_FLOW.md`
-4. Contact your CommentSync administrator
+4. Contact your Echo administrator
 
 ---
 
