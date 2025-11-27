@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { MessageSquare, FolderOpen, Plus, Clock, CheckCircle2 } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { MessageSquare, FolderOpen, Plus, Clock, CheckCircle2, X } from 'lucide-react';
 import { useWorkspace } from '../contexts/WorkspaceContext';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
@@ -29,11 +29,16 @@ interface CommentActivity {
 }
 
 export function Dashboard() {
-  const { currentWorkspace } = useWorkspace();
+  const { currentWorkspace, refreshWorkspaces } = useWorkspace();
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [ownedApps, setOwnedApps] = useState<AppWithStats[]>([]);
   const [recentActivity, setRecentActivity] = useState<CommentActivity[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [workspaceName, setWorkspaceName] = useState('');
+  const [creating, setCreating] = useState(false);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     if (currentWorkspace && user) {
@@ -103,6 +108,52 @@ export function Dashboard() {
     setLoading(false);
   };
 
+  const generateSlug = (name: string) => {
+    return name
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-|-$/g, '');
+  };
+
+  const handleCreateWorkspace = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user) return;
+
+    setCreating(true);
+    setError('');
+
+    const slug = generateSlug(workspaceName);
+
+    const { data: existingWorkspace } = await supabase
+      .from('workspaces')
+      .select('id')
+      .eq('slug', slug)
+      .maybeSingle();
+
+    if (existingWorkspace) {
+      setError('A workspace with this name already exists. Please choose a different name.');
+      setCreating(false);
+      return;
+    }
+
+    const { error: createError } = await supabase
+      .rpc('create_workspace_with_member', {
+        workspace_name: workspaceName,
+        workspace_slug: slug,
+      });
+
+    if (createError) {
+      setError(createError.message);
+      setCreating(false);
+      return;
+    }
+
+    await refreshWorkspaces();
+    setShowCreateModal(false);
+    setWorkspaceName('');
+    setCreating(false);
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -126,13 +177,13 @@ export function Dashboard() {
           <p className="text-slate-600 mb-6">
             You don't have a workspace yet. Create one to start collecting feedback, or wait for someone to invite you to their workspace.
           </p>
-          <Link
-            to="/onboarding"
+          <button
+            onClick={() => setShowCreateModal(true)}
             className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition"
           >
             <Plus className="w-5 h-5" />
             <span>Create Workspace</span>
-          </Link>
+          </button>
         </div>
       </div>
     );
@@ -272,6 +323,85 @@ export function Dashboard() {
           )}
         </div>
       </div>
+
+      {showCreateModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-md w-full p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-semibold text-slate-900">Create Workspace</h2>
+              <button
+                onClick={() => {
+                  setShowCreateModal(false);
+                  setWorkspaceName('');
+                  setError('');
+                }}
+                className="text-slate-400 hover:text-slate-600 transition"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {error && (
+              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+                {error}
+              </div>
+            )}
+
+            <form onSubmit={handleCreateWorkspace} className="space-y-4">
+              <div>
+                <label htmlFor="workspaceName" className="block text-sm font-medium text-slate-700 mb-1">
+                  Workspace name
+                </label>
+                <input
+                  id="workspaceName"
+                  type="text"
+                  value={workspaceName}
+                  onChange={(e) => setWorkspaceName(e.target.value)}
+                  required
+                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+                  placeholder="My Team"
+                />
+                {workspaceName && (
+                  <p className="mt-1 text-xs text-slate-500">
+                    Workspace URL: {generateSlug(workspaceName) || 'workspace-url'}
+                  </p>
+                )}
+              </div>
+
+              <div className="flex gap-3 justify-end">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowCreateModal(false);
+                    setWorkspaceName('');
+                    setError('');
+                  }}
+                  className="px-4 py-2 text-slate-600 hover:text-slate-900 transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={creating}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:opacity-50 flex items-center gap-2"
+                >
+                  {creating ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      <span>Creating...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Plus className="w-4 h-4" />
+                      <span>Create</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
