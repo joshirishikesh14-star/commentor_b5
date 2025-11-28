@@ -49,7 +49,7 @@ export function Workspace() {
     const workspacesData: WorkspaceWithMembers[] = [];
 
     for (const workspace of workspaces) {
-      const { data: members } = await supabase
+      const { data: members, error } = await supabase
         .from('workspace_members')
         .select(`
           id,
@@ -63,6 +63,12 @@ export function Workspace() {
         `)
         .eq('workspace_id', workspace.id)
         .order('joined_at', { ascending: true });
+
+      if (error) {
+        console.error('Error fetching members for workspace:', workspace.name, error);
+      } else {
+        console.log('Members for workspace:', workspace.name, members);
+      }
 
       workspacesData.push({
         workspace,
