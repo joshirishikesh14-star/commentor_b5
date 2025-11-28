@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { MessageSquare } from 'lucide-react';
+import { MessageSquare, ArrowLeft } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
 export function Signup() {
@@ -36,6 +36,13 @@ export function Signup() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
+        <Link
+          to="/"
+          className="inline-flex items-center gap-2 text-slate-600 hover:text-slate-900 mb-6 font-medium transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Back to Home
+        </Link>
         <div className="text-center mb-8">
           <div className="inline-flex items-center gap-2 mb-4">
             <div className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center">
