@@ -357,7 +357,7 @@ export function Workspace() {
                 </div>
 
                 {isExpanded && (
-                  <div className="p-6 pt-0 border-t border-slate-200">
+                  <div className="p-6 border-t border-slate-200">
                     <div className="flex items-center justify-between mb-4">
                       <div className="flex items-center gap-2">
                         <Users className="w-5 h-5 text-slate-600" />
