@@ -306,7 +306,7 @@ export function Landing() {
                 </li>
                 <li className="flex items-center gap-3">
                   <Check className="w-5 h-5 text-white flex-shrink-0" />
-                  <span>Jira, Notion, GitHub sync</span>
+                  <span>Jira, Notion, GitHub & Linear sync</span>
                 </li>
                 <li className="flex items-center gap-3">
                   <Check className="w-5 h-5 text-white flex-shrink-0" />
