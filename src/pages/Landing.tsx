@@ -75,12 +75,99 @@ export function Landing() {
           </div>
 
           <div className="mt-16 relative">
-            <div className="absolute inset-0 bg-gradient-to-t from-[#FAF9F8] to-transparent h-32 bottom-0 z-10"></div>
-            <div className="bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden p-4">
-              <div className="bg-gradient-to-br from-pink-50 via-purple-50 to-yellow-50 rounded-lg aspect-video flex items-center justify-center">
-                <div className="text-center">
-                  <MessageSquare className="w-16 h-16 text-slate-700 mx-auto mb-4" />
-                  <p className="text-slate-700 text-sm font-medium">Product Demo Preview</p>
+            <div className="absolute inset-0 bg-gradient-to-t from-[#FAF9F8] to-transparent h-32 bottom-0 z-10 pointer-events-none"></div>
+            <div className="bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden">
+              <div className="bg-slate-900 text-white px-4 py-3 flex items-center gap-2 border-b border-slate-700">
+                <div className="flex gap-1.5">
+                  <div className="w-3 h-3 rounded-full bg-red-500"></div>
+                  <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
+                  <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                </div>
+                <div className="flex-1 text-center text-sm font-medium text-slate-300">
+                  app.example.com
+                </div>
+              </div>
+
+              <div className="bg-gradient-to-br from-pink-50 via-purple-50 to-yellow-50 p-8 relative" style={{ minHeight: '500px' }}>
+                <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-6 max-w-2xl mx-auto mb-6">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-100 to-pink-100 flex items-center justify-center">
+                      <Target className="w-5 h-5 text-purple-600" />
+                    </div>
+                    <div className="flex-1">
+                      <div className="h-4 bg-slate-200 rounded w-3/4 mb-2"></div>
+                      <div className="h-3 bg-slate-100 rounded w-1/2"></div>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="h-3 bg-slate-100 rounded"></div>
+                    <div className="h-3 bg-slate-100 rounded w-5/6"></div>
+                    <div className="h-3 bg-slate-100 rounded w-4/6"></div>
+                  </div>
+                </div>
+
+                <div className="absolute top-32 left-12 w-8 h-8 bg-slate-900 text-white rounded-full flex items-center justify-center text-sm font-bold shadow-lg border-2 border-white cursor-pointer hover:scale-110 transition-transform" title="Comment thread">
+                  3
+                </div>
+
+                <div className="absolute top-48 right-16 w-8 h-8 bg-green-500 text-white rounded-full flex items-center justify-center text-sm font-bold shadow-lg border-2 border-white cursor-pointer hover:scale-110 transition-transform" title="Resolved comment">
+                  1
+                </div>
+
+                <div className="absolute bottom-24 left-1/4 w-8 h-8 bg-slate-900 text-white rounded-full flex items-center justify-center text-sm font-bold shadow-lg border-2 border-white cursor-pointer hover:scale-110 transition-transform animate-pulse" title="New comment">
+                  1
+                </div>
+
+                <div className="absolute bottom-12 right-12 w-14 h-14 bg-slate-900 text-white rounded-full flex items-center justify-center shadow-xl cursor-pointer hover:scale-110 transition-transform">
+                  <MessageSquare className="w-6 h-6" />
+                  <div className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center text-xs font-bold">
+                    5
+                  </div>
+                </div>
+
+                <div className="absolute top-1/2 right-4 w-80 bg-white rounded-xl shadow-2xl border border-slate-200 overflow-hidden transform -translate-y-1/2">
+                  <div className="bg-slate-900 text-white p-4 flex items-center justify-between">
+                    <div>
+                      <div className="font-semibold">Comments</div>
+                      <div className="text-xs text-slate-400">5 threads</div>
+                    </div>
+                    <button className="text-white opacity-80 hover:opacity-100">×</button>
+                  </div>
+
+                  <div className="p-4 space-y-3 max-h-64 overflow-y-auto">
+                    <div className="bg-slate-50 rounded-lg p-3 border border-slate-200">
+                      <div className="flex items-start gap-2 mb-2">
+                        <div className="w-6 h-6 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 flex-shrink-0"></div>
+                        <div className="flex-1 min-w-0">
+                          <div className="font-medium text-sm text-slate-900">Sarah Chen</div>
+                          <div className="text-xs text-slate-500">2 hours ago</div>
+                        </div>
+                      </div>
+                      <p className="text-sm text-slate-700">The spacing here feels a bit tight, can we increase it?</p>
+                      <div className="mt-2 flex gap-2">
+                        <span className="px-2 py-0.5 bg-slate-200 text-slate-700 rounded text-xs">Open</span>
+                        <span className="text-xs text-slate-500">3 replies</span>
+                      </div>
+                    </div>
+
+                    <div className="bg-green-50 rounded-lg p-3 border border-green-200">
+                      <div className="flex items-start gap-2 mb-2">
+                        <div className="w-6 h-6 rounded-full bg-gradient-to-br from-yellow-400 to-orange-400 flex-shrink-0"></div>
+                        <div className="flex-1 min-w-0">
+                          <div className="font-medium text-sm text-slate-900">Alex Rivera</div>
+                          <div className="text-xs text-slate-500">1 day ago</div>
+                        </div>
+                      </div>
+                      <p className="text-sm text-slate-700">Button alignment looks perfect now!</p>
+                      <div className="mt-2">
+                        <span className="px-2 py-0.5 bg-green-200 text-green-800 rounded text-xs">Resolved</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="absolute bottom-4 left-4 text-xs text-slate-600 bg-white/90 backdrop-blur-sm px-3 py-2 rounded-lg border border-slate-200 shadow-sm">
+                  <span className="font-semibold">💡 Tip:</span> Click anywhere to add feedback
                 </div>
               </div>
             </div>
