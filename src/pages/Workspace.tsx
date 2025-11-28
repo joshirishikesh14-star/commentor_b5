@@ -17,7 +17,7 @@ interface WorkspaceMember {
 }
 
 export function Workspace() {
-  const { currentWorkspace, workspaces, setWorkspaces, setCurrentWorkspace } = useWorkspace();
+  const { currentWorkspace, workspaces, setCurrentWorkspace, refreshWorkspaces } = useWorkspace();
   const { user } = useAuth();
   const navigate = useNavigate();
   const [members, setMembers] = useState<WorkspaceMember[]>([]);
@@ -127,47 +127,41 @@ export function Workspace() {
       .from('workspaces')
       .select('id')
       .eq('slug', slug)
+      .eq('owner_id', user.id)
       .maybeSingle();
 
     if (existingWorkspace) {
-      alert('A workspace with this name already exists. Please choose a different name.');
+      alert('You already have a workspace with this name. Please choose a different name.');
       setCreatingWorkspace(false);
       return;
     }
 
-    const { data: workspace, error: workspaceError } = await supabase
-      .from('workspaces')
-      .insert({
-        name: newWorkspaceName.trim(),
-        slug,
-        owner_id: user.id,
-      })
-      .select()
-      .single();
-
-    if (workspaceError) {
-      alert('Failed to create workspace');
-      setCreatingWorkspace(false);
-      return;
-    }
-
-    const { error: memberError } = await supabase
-      .from('workspace_members')
-      .insert({
-        workspace_id: workspace.id,
-        user_id: user.id,
-        role: 'admin',
+    const { data, error: createError } = await supabase
+      .rpc('create_workspace_with_member', {
+        workspace_name: newWorkspaceName.trim(),
+        workspace_slug: slug,
       });
 
-    if (memberError) {
-      alert('Failed to add you as workspace member');
+    if (createError) {
+      console.error('Workspace creation error:', createError);
+      alert('Failed to create workspace: ' + createError.message);
       setCreatingWorkspace(false);
       return;
     }
 
-    const updatedWorkspaces = [...workspaces, workspace];
-    setWorkspaces(updatedWorkspaces);
-    setCurrentWorkspace(workspace);
+    if (!data) {
+      alert('Failed to create workspace - no data returned');
+      setCreatingWorkspace(false);
+      return;
+    }
+
+    await refreshWorkspaces();
+
+    const workspace = data.workspace;
+    if (workspace) {
+      setCurrentWorkspace(workspace);
+    }
+
     setNewWorkspaceName('');
     setShowCreateWorkspace(false);
     setCreatingWorkspace(false);
