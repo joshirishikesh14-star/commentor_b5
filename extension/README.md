@@ -1,6 +1,8 @@
-# Echo Chrome Extension
+# Echo Browser Extension
 
-This Chrome extension allows testers to add contextual feedback on any web application, including apps that use OAuth authentication (Google, GitHub, etc).
+**Universal Feedback Platform** - Pin contextual feedback directly on any web application.
+
+This Chrome extension allows testers and teams to add contextual feedback on any web application, including apps that use OAuth authentication (Google, GitHub, etc).
 
 ## Features
 
@@ -18,7 +20,7 @@ This Chrome extension allows testers to add contextual feedback on any web appli
 - ✅ Edit your own comments
 - ✅ Delete your own comments
 - ✅ Resolve/reopen threads
-- ✅ Color-coded pins (blue = open, green = resolved)
+- ✅ Color-coded pins (slate = open, green = resolved)
 - ✅ Comment count badges on pins
 - ✅ Screenshot preview in thread viewer
 

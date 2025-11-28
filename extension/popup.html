@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Echo</title>
+  <title>Echo Extension</title>
   <style>
     * {
       margin: 0;
@@ -14,26 +14,39 @@
     body {
       width: 360px;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+      background: #FAF9F8;
       padding: 0;
     }
 
     .header {
-      background: #3B82F6;
-      color: white;
+      background: white;
+      border-bottom: 1px solid #e2e8f0;
       padding: 20px;
       text-align: center;
     }
 
+    .header-logo {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+
+    .header-icon {
+      width: 24px;
+      height: 24px;
+    }
+
     .header h1 {
-      font-size: 18px;
-      font-weight: 600;
-      margin-bottom: 4px;
+      font-size: 20px;
+      font-weight: 700;
+      color: #0f172a;
     }
 
     .header p {
-      font-size: 12px;
-      opacity: 0.9;
+      font-size: 13px;
+      color: #64748b;
     }
 
     .content {
@@ -44,7 +57,7 @@
       background: white;
       border-radius: 12px;
       padding: 20px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+      border: 1px solid #e2e8f0;
     }
 
     .hidden {
@@ -71,17 +84,18 @@
       font-size: 14px;
       font-family: inherit;
       transition: border-color 0.2s;
+      background: white;
     }
 
     .form-group input:focus, .form-group select:focus {
       outline: none;
-      border-color: #3B82F6;
-      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+      border-color: #0f172a;
+      box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.1);
     }
 
     .btn {
       width: 100%;
-      padding: 12px;
+      padding: 11px 16px;
       border: none;
       border-radius: 8px;
       font-size: 14px;
@@ -92,36 +106,37 @@
     }
 
     .btn-primary {
-      background: #3B82F6;
+      background: #0f172a;
       color: white;
     }
 
     .btn-primary:hover {
-      background: #2563EB;
+      background: #1e293b;
     }
 
     .btn-success {
-      background: #10B981;
+      background: #0f172a;
       color: white;
     }
 
     .btn-success:hover {
-      background: #059669;
+      background: #1e293b;
     }
 
     .btn-danger {
-      background: #EF4444;
+      background: #dc2626;
       color: white;
     }
 
     .btn-danger:hover {
-      background: #DC2626;
+      background: #b91c1c;
     }
 
     .btn-secondary {
       background: #f1f5f9;
       color: #475569;
       margin-top: 8px;
+      border: 1px solid #e2e8f0;
     }
 
     .btn-secondary:hover {
@@ -135,27 +150,29 @@
 
     .status {
       padding: 12px;
-      background: #f1f5f9;
+      background: #f8fafc;
       border-radius: 8px;
       margin-bottom: 16px;
       font-size: 13px;
       color: #475569;
+      border: 1px solid #e2e8f0;
     }
 
     .status.active {
-      background: #dcfce7;
+      background: #f0fdf4;
       color: #166534;
+      border-color: #bbf7d0;
     }
 
     .status strong {
       display: block;
       margin-bottom: 4px;
-      color: #1e293b;
+      color: #0f172a;
     }
 
     .error {
       padding: 12px;
-      background: #fee2e2;
+      background: #fef2f2;
       border: 1px solid #fecaca;
       border-radius: 8px;
       color: #991b1b;
@@ -164,10 +181,11 @@
     }
 
     .link {
-      color: #3B82F6;
+      color: #0f172a;
       text-decoration: none;
       font-size: 13px;
       cursor: pointer;
+      font-weight: 500;
     }
 
     .link:hover {
@@ -197,12 +215,28 @@
       font-size: 12px;
       color: #64748b;
     }
+
+    #domain-warning {
+      margin: 12px 0;
+      padding: 12px;
+      background: #fef3c7;
+      border: 1px solid #fbbf24;
+      border-radius: 8px;
+      font-size: 12px;
+      color: #92400e;
+      line-height: 1.5;
+    }
   </style>
 </head>
 <body>
   <div class="header">
-    <h1>Echo</h1>
-    <p>Contextual Feedback Extension</p>
+    <div class="header-logo">
+      <svg class="header-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+      </svg>
+      <h1>Echo</h1>
+    </div>
+    <p>Universal Feedback Platform</p>
   </div>
 
   <div class="content">
@@ -239,7 +273,7 @@
         </select>
       </div>
 
-      <div id="domain-warning" class="hidden" style="margin: 12px 0; padding: 12px; background: #FEF3C7; border: 1px solid #F59E0B; border-radius: 8px; font-size: 12px; color: #92400E; line-height: 1.5;"></div>
+      <div id="domain-warning" class="hidden"></div>
 
       <button id="goto-page-btn" class="btn btn-primary hidden">Go to Page</button>
 

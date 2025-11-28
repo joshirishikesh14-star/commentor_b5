@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Echo",
   "version": "1.0.0",
-  "description": "Universal Feedback Platform - Capture UAT feedback on any web application",
+  "description": "Pin contextual feedback directly on any web application. Collaborate in real-time, track issues, and ship better products.",
   "permissions": [
     "activeTab",
     "storage",
