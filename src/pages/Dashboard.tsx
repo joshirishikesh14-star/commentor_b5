@@ -137,14 +137,22 @@ export function Dashboard() {
       return;
     }
 
-    const { error: createError } = await supabase
+    const { data, error: createError } = await supabase
       .rpc('create_workspace_with_member', {
         workspace_name: workspaceName,
         workspace_slug: slug,
       });
 
     if (createError) {
-      setError(createError.message);
+      console.error('Workspace creation error:', createError);
+      setError(createError.message || 'Failed to create workspace');
+      setCreating(false);
+      return;
+    }
+
+    if (!data) {
+      console.error('No data returned from workspace creation');
+      setError('Failed to create workspace - no data returned');
       setCreating(false);
       return;
     }
