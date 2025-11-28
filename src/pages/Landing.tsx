@@ -4,6 +4,7 @@ import { MessageSquare, Zap, Users, Shield, Check, ArrowRight, Play, Target, Glo
 
 export function Landing() {
   const [scrollY, setScrollY] = useState(0);
+  const [selectedThread, setSelectedThread] = useState<number | null>(null);
 
   useEffect(() => {
     const handleScroll = () => setScrollY(window.scrollY);
@@ -49,10 +50,12 @@ export function Landing() {
             Collaborative Feedback Made Simple
           </div>
 
-          <h1 className="text-6xl md:text-7xl font-bold mb-6 leading-tight text-slate-900">
-            Feedback on Any Website,
+          <h1 className="text-6xl md:text-7xl font-bold mb-6 leading-tight">
+            <span className="bg-gradient-to-r from-blue-600 via-cyan-500 to-blue-600 bg-clip-text text-transparent">
+              Feedback on Any Website,
+            </span>
             <br />
-            Just Like Figma
+            <span className="text-slate-900">Just Like Figma</span>
           </h1>
 
           <p className="text-xl text-slate-600 mb-10 max-w-3xl mx-auto leading-relaxed">
@@ -106,15 +109,27 @@ export function Landing() {
                   </div>
                 </div>
 
-                <div className="absolute top-32 left-12 w-8 h-8 bg-slate-900 text-white rounded-full flex items-center justify-center text-sm font-bold shadow-lg border-2 border-white cursor-pointer hover:scale-110 transition-transform" title="Comment thread">
+                <div
+                  onClick={() => setSelectedThread(selectedThread === 1 ? null : 1)}
+                  className={`absolute top-32 left-12 w-8 h-8 bg-slate-900 text-white rounded-full flex items-center justify-center text-sm font-bold shadow-lg border-2 border-white cursor-pointer hover:scale-110 transition-all ${selectedThread === 1 ? 'ring-4 ring-blue-400' : ''}`}
+                  title="Comment thread"
+                >
                   3
                 </div>
 
-                <div className="absolute top-48 right-16 w-8 h-8 bg-green-500 text-white rounded-full flex items-center justify-center text-sm font-bold shadow-lg border-2 border-white cursor-pointer hover:scale-110 transition-transform" title="Resolved comment">
+                <div
+                  onClick={() => setSelectedThread(selectedThread === 2 ? null : 2)}
+                  className={`absolute top-48 right-16 w-8 h-8 bg-green-500 text-white rounded-full flex items-center justify-center text-sm font-bold shadow-lg border-2 border-white cursor-pointer hover:scale-110 transition-all ${selectedThread === 2 ? 'ring-4 ring-blue-400' : ''}`}
+                  title="Resolved comment"
+                >
                   1
                 </div>
 
-                <div className="absolute bottom-24 left-1/4 w-8 h-8 bg-slate-900 text-white rounded-full flex items-center justify-center text-sm font-bold shadow-lg border-2 border-white cursor-pointer hover:scale-110 transition-transform animate-pulse" title="New comment">
+                <div
+                  onClick={() => setSelectedThread(selectedThread === 3 ? null : 3)}
+                  className={`absolute bottom-24 left-1/4 w-8 h-8 bg-slate-900 text-white rounded-full flex items-center justify-center text-sm font-bold shadow-lg border-2 border-white cursor-pointer hover:scale-110 transition-all ${selectedThread === 3 ? 'ring-4 ring-blue-400 animate-none' : 'animate-pulse'}`}
+                  title="New comment"
+                >
                   1
                 </div>
 
@@ -125,49 +140,110 @@ export function Landing() {
                   </div>
                 </div>
 
-                <div className="absolute top-1/2 right-4 w-80 bg-white rounded-xl shadow-2xl border border-slate-200 overflow-hidden transform -translate-y-1/2">
-                  <div className="bg-slate-900 text-white p-4 flex items-center justify-between">
-                    <div>
-                      <div className="font-semibold">Comments</div>
-                      <div className="text-xs text-slate-400">5 threads</div>
+{selectedThread === 1 && (
+                  <div className="absolute top-24 left-20 w-80 bg-white rounded-xl shadow-2xl border border-slate-200 overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-300 z-10">
+                    <div className="bg-gradient-to-r from-blue-600 to-cyan-500 text-white p-4 flex items-center justify-between">
+                      <div>
+                        <div className="font-semibold">Thread Details</div>
+                        <div className="text-xs text-blue-100">3 comments</div>
+                      </div>
+                      <button onClick={() => setSelectedThread(null)} className="text-white opacity-80 hover:opacity-100 text-xl">×</button>
                     </div>
-                    <button className="text-white opacity-80 hover:opacity-100">×</button>
-                  </div>
-
-                  <div className="p-4 space-y-3 max-h-64 overflow-y-auto">
-                    <div className="bg-slate-50 rounded-lg p-3 border border-slate-200">
-                      <div className="flex items-start gap-2 mb-2">
-                        <div className="w-6 h-6 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 flex-shrink-0"></div>
-                        <div className="flex-1 min-w-0">
-                          <div className="font-medium text-sm text-slate-900">Sarah Chen</div>
-                          <div className="text-xs text-slate-500">2 hours ago</div>
+                    <div className="p-4 space-y-3">
+                      <div className="bg-slate-50 rounded-lg p-3 border border-slate-200">
+                        <div className="flex items-start gap-2 mb-2">
+                          <div className="w-6 h-6 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 flex-shrink-0"></div>
+                          <div className="flex-1 min-w-0">
+                            <div className="font-medium text-sm text-slate-900">Sarah Chen</div>
+                            <div className="text-xs text-slate-500">2 hours ago</div>
+                          </div>
+                        </div>
+                        <p className="text-sm text-slate-700">The spacing here feels a bit tight, can we increase it?</p>
+                        <div className="mt-2">
+                          <span className="px-2 py-0.5 bg-slate-200 text-slate-700 rounded text-xs">Open</span>
                         </div>
                       </div>
-                      <p className="text-sm text-slate-700">The spacing here feels a bit tight, can we increase it?</p>
-                      <div className="mt-2 flex gap-2">
-                        <span className="px-2 py-0.5 bg-slate-200 text-slate-700 rounded text-xs">Open</span>
-                        <span className="text-xs text-slate-500">3 replies</span>
-                      </div>
-                    </div>
-
-                    <div className="bg-green-50 rounded-lg p-3 border border-green-200">
-                      <div className="flex items-start gap-2 mb-2">
-                        <div className="w-6 h-6 rounded-full bg-gradient-to-br from-yellow-400 to-orange-400 flex-shrink-0"></div>
-                        <div className="flex-1 min-w-0">
-                          <div className="font-medium text-sm text-slate-900">Alex Rivera</div>
-                          <div className="text-xs text-slate-500">1 day ago</div>
+                      <div className="pl-4 border-l-2 border-slate-200 space-y-2">
+                        <div className="bg-white rounded-lg p-2 border border-slate-100">
+                          <div className="flex items-center gap-2 mb-1">
+                            <div className="w-4 h-4 rounded-full bg-gradient-to-br from-yellow-400 to-orange-400"></div>
+                            <div className="text-xs font-medium text-slate-900">Mike Johnson</div>
+                            <div className="text-xs text-slate-400">1 hour ago</div>
+                          </div>
+                          <p className="text-xs text-slate-600">Good catch! I'll increase padding to 24px</p>
                         </div>
-                      </div>
-                      <p className="text-sm text-slate-700">Button alignment looks perfect now!</p>
-                      <div className="mt-2">
-                        <span className="px-2 py-0.5 bg-green-200 text-green-800 rounded text-xs">Resolved</span>
+                        <div className="bg-white rounded-lg p-2 border border-slate-100">
+                          <div className="flex items-center gap-2 mb-1">
+                            <div className="w-4 h-4 rounded-full bg-gradient-to-br from-green-400 to-emerald-400"></div>
+                            <div className="text-xs font-medium text-slate-900">Lisa Park</div>
+                            <div className="text-xs text-slate-400">30 min ago</div>
+                          </div>
+                          <p className="text-xs text-slate-600">+1, looks much better with more space</p>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
+                )}
+
+                {selectedThread === 2 && (
+                  <div className="absolute top-40 right-24 w-80 bg-white rounded-xl shadow-2xl border border-slate-200 overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-300 z-10">
+                    <div className="bg-gradient-to-r from-green-600 to-emerald-500 text-white p-4 flex items-center justify-between">
+                      <div>
+                        <div className="font-semibold">Resolved Thread</div>
+                        <div className="text-xs text-green-100">1 comment</div>
+                      </div>
+                      <button onClick={() => setSelectedThread(null)} className="text-white opacity-80 hover:opacity-100 text-xl">×</button>
+                    </div>
+                    <div className="p-4">
+                      <div className="bg-green-50 rounded-lg p-3 border border-green-200">
+                        <div className="flex items-start gap-2 mb-2">
+                          <div className="w-6 h-6 rounded-full bg-gradient-to-br from-yellow-400 to-orange-400 flex-shrink-0"></div>
+                          <div className="flex-1 min-w-0">
+                            <div className="font-medium text-sm text-slate-900">Alex Rivera</div>
+                            <div className="text-xs text-slate-500">1 day ago</div>
+                          </div>
+                        </div>
+                        <p className="text-sm text-slate-700">Button alignment looks perfect now! ✓</p>
+                        <div className="mt-2">
+                          <span className="px-2 py-0.5 bg-green-200 text-green-800 rounded text-xs font-medium">✓ Resolved</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {selectedThread === 3 && (
+                  <div className="absolute bottom-32 left-1/4 ml-10 w-80 bg-white rounded-xl shadow-2xl border border-slate-200 overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-300 z-10">
+                    <div className="bg-gradient-to-r from-blue-600 to-cyan-500 text-white p-4 flex items-center justify-between">
+                      <div>
+                        <div className="font-semibold flex items-center gap-2">
+                          New Comment
+                          <span className="w-2 h-2 bg-red-400 rounded-full animate-pulse"></span>
+                        </div>
+                        <div className="text-xs text-blue-100">Just added</div>
+                      </div>
+                      <button onClick={() => setSelectedThread(null)} className="text-white opacity-80 hover:opacity-100 text-xl">×</button>
+                    </div>
+                    <div className="p-4">
+                      <div className="bg-blue-50 rounded-lg p-3 border border-blue-200">
+                        <div className="flex items-start gap-2 mb-2">
+                          <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-400 to-cyan-400 flex-shrink-0"></div>
+                          <div className="flex-1 min-w-0">
+                            <div className="font-medium text-sm text-slate-900">Emma Davis</div>
+                            <div className="text-xs text-slate-500">Just now</div>
+                          </div>
+                        </div>
+                        <p className="text-sm text-slate-700">Should we add an icon here for better clarity?</p>
+                        <div className="mt-2">
+                          <span className="px-2 py-0.5 bg-blue-200 text-blue-800 rounded text-xs font-medium">New</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 <div className="absolute bottom-4 left-4 text-xs text-slate-600 bg-white/90 backdrop-blur-sm px-3 py-2 rounded-lg border border-slate-200 shadow-sm">
-                  <span className="font-semibold">💡 Tip:</span> Click anywhere to add feedback
+                  <span className="font-semibold">💡 Tip:</span> Click the dots to view comments
                 </div>
               </div>
             </div>
