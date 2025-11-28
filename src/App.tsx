@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { WorkspaceProvider, useWorkspace } from './contexts/WorkspaceContext';
+import { Landing } from './pages/Landing';
 import { Login } from './pages/Login';
 import { Signup } from './pages/Signup';
 import { Onboarding } from './pages/Onboarding';
@@ -65,7 +66,7 @@ function RootRedirect() {
   }
 
   if (!user) {
-    return <Navigate to="/login" replace />;
+    return <Landing />;
   }
 
   return <Navigate to={workspaces.length > 0 ? '/dashboard' : '/onboarding'} replace />;
