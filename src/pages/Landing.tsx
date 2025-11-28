@@ -1,34 +1,31 @@
-import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { MessageSquare, Zap, Users, Shield, Check, ArrowRight, Play, Target, Globe, Sparkles } from 'lucide-react';
+import { MessageSquare, Check, ArrowRight, Star, Zap, Users, Shield, Target, BarChart3 } from 'lucide-react';
 
 export function Landing() {
-  const [scrollY, setScrollY] = useState(0);
-
-  useEffect(() => {
-    const handleScroll = () => setScrollY(window.scrollY);
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#F2F2F2] via-white to-[#F2AEEE]/10">
-      <nav className="fixed top-0 w-full bg-white/90 backdrop-blur-md border-b border-slate-200 z-50">
+    <div className="min-h-screen bg-[#FAF9F8]">
+      <nav className="fixed top-0 w-full bg-white/95 backdrop-blur-sm border-b border-slate-200 z-50">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <MessageSquare className="w-8 h-8 text-[#5941F2]" />
-            <span className="text-2xl font-bold bg-gradient-to-r from-[#5941F2] to-[#F2AEEE] bg-clip-text text-transparent">Echo</span>
+            <MessageSquare className="w-7 h-7 text-slate-900" />
+            <span className="text-xl font-bold text-slate-900">Echo</span>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-6">
+            <a href="#features" className="text-slate-600 hover:text-slate-900 text-sm font-medium transition-colors">
+              Features
+            </a>
+            <a href="#pricing" className="text-slate-600 hover:text-slate-900 text-sm font-medium transition-colors">
+              Pricing
+            </a>
             <Link
               to="/login"
-              className="text-slate-700 hover:text-[#5941F2] font-medium transition-colors"
+              className="text-slate-600 hover:text-slate-900 text-sm font-medium transition-colors"
             >
               Sign In
             </Link>
             <Link
               to="/signup"
-              className="bg-gradient-to-r from-[#5941F2] to-[#F2AEEE] text-white px-6 py-2.5 rounded-lg font-medium hover:shadow-lg hover:shadow-[#5941F2]/30 transition-all hover:scale-105"
+              className="bg-slate-900 text-white px-5 py-2 rounded-lg text-sm font-medium hover:bg-slate-800 transition-colors"
             >
               Get Started
             </Link>
@@ -36,64 +33,340 @@ export function Landing() {
         </div>
       </nav>
 
-      <section className="pt-32 pb-20 px-6">
-        <div className="max-w-6xl mx-auto text-center">
-          <div
-            className="inline-flex items-center gap-2 bg-gradient-to-r from-[#F2AEEE]/20 to-[#5941F2]/10 text-[#5941F2] px-4 py-2 rounded-full text-sm font-semibold mb-8 animate-fade-in border border-[#5941F2]/20"
-            style={{ animationDelay: '0.1s' }}
-          >
-            <Sparkles className="w-4 h-4" />
-            Collaborative Feedback Made Simple
+      <section className="pt-32 pb-16 px-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-12">
+            <div className="inline-flex items-center gap-2 bg-slate-100 px-4 py-2 rounded-full text-sm font-medium text-slate-700 mb-8">
+              <Star className="w-4 h-4 text-slate-900" />
+              Collaboration Platform
+            </div>
+
+            <h1 className="text-6xl md:text-7xl font-bold mb-6 leading-tight text-slate-900">
+              Smarter Feedback.
+              <br />
+              Stronger Collaboration.
+            </h1>
+
+            <p className="text-xl text-slate-600 mb-10 max-w-3xl mx-auto">
+              Pin contextual feedback directly on any web application.
+              Track issues, collaborate with your team, and ship better products faster.
+            </p>
+
+            <div className="flex items-center justify-center gap-4 mb-16">
+              <Link
+                to="/signup"
+                className="bg-slate-900 text-white px-8 py-4 rounded-lg font-semibold hover:bg-slate-800 transition-colors flex items-center gap-2"
+              >
+                Get Started
+                <ArrowRight className="w-5 h-5" />
+              </Link>
+            </div>
           </div>
 
-          <h1
-            className="text-6xl md:text-7xl font-bold mb-6 leading-tight animate-fade-in"
-            style={{ animationDelay: '0.2s' }}
-          >
-            <span className="bg-gradient-to-r from-[#5941F2] via-[#F2AEEE] to-[#F2B035] bg-clip-text text-transparent">
-              Feedback on Any Website,
-            </span>
-            <br />
-            <span className="bg-gradient-to-r from-[#F2B035] via-[#F24535] to-[#5941F2] bg-clip-text text-transparent">
-              Just Like Figma
-            </span>
-          </h1>
+          <div className="relative">
+            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#FAF9F8]/50 to-[#FAF9F8] z-10 pointer-events-none"></div>
+            <div className="bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden">
+              <div className="bg-gradient-to-br from-pink-50 via-purple-50 to-yellow-50 p-8">
+                <div className="grid md:grid-cols-3 gap-4 mb-6">
+                  <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                        <Target className="w-5 h-5 text-purple-600" />
+                      </div>
+                      <div className="text-sm font-semibold text-slate-900">Promotion Analysis</div>
+                    </div>
+                    <div className="text-4xl font-bold text-slate-900 mb-2">486</div>
+                    <div className="text-sm text-slate-500">Active Threads</div>
+                  </div>
 
-          <p
-            className="text-xl text-slate-600 mb-10 max-w-3xl mx-auto leading-relaxed animate-fade-in"
-            style={{ animationDelay: '0.3s' }}
-          >
-            Pin contextual feedback directly on any web application. Collaborate with your team in real-time,
-            track issues, and ship better products faster.
-          </p>
+                  <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                        <BarChart3 className="w-5 h-5 text-blue-600" />
+                      </div>
+                      <div className="text-sm font-semibold text-slate-900">Store Order Analysis</div>
+                    </div>
+                    <div className="flex gap-2">
+                      <div className="h-20 w-8 bg-gradient-to-t from-purple-300 to-purple-200 rounded-md"></div>
+                      <div className="h-20 w-8 bg-gradient-to-t from-pink-300 to-pink-200 rounded-md"></div>
+                      <div className="h-20 w-8 bg-gradient-to-t from-yellow-300 to-yellow-200 rounded-md"></div>
+                    </div>
+                  </div>
 
-          <div
-            className="flex items-center justify-center gap-4 animate-fade-in"
-            style={{ animationDelay: '0.4s' }}
-          >
-            <Link
-              to="/signup"
-              className="bg-gradient-to-r from-[#5941F2] to-[#F2AEEE] text-white px-8 py-4 rounded-xl font-semibold text-lg hover:shadow-2xl hover:shadow-[#5941F2]/40 transition-all hover:scale-105 flex items-center gap-2"
-            >
-              Start Free Trial
-              <ArrowRight className="w-5 h-5" />
-            </Link>
-            <button className="bg-white text-[#5941F2] px-8 py-4 rounded-xl font-semibold text-lg hover:bg-gradient-to-r hover:from-[#F2B035]/10 hover:to-[#F2AEEE]/10 transition-all border-2 border-[#5941F2]/20 shadow-sm flex items-center gap-2">
-              <Play className="w-5 h-5" />
-              Watch Demo
-            </button>
+                  <div className="bg-gradient-to-br from-yellow-100 to-yellow-200 rounded-xl p-6 shadow-sm">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center">
+                        <Zap className="w-5 h-5 text-yellow-700" />
+                      </div>
+                      <div className="text-sm font-semibold text-slate-900">On Track Deals</div>
+                    </div>
+                    <div className="text-3xl font-bold text-slate-900">$24,120</div>
+                  </div>
+                </div>
+
+                <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="text-sm font-semibold text-slate-900">Recent Activity</div>
+                    <div className="flex gap-2">
+                      <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
+                        <Users className="w-4 h-4 text-purple-600" />
+                      </div>
+                      <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                        <MessageSquare className="w-4 h-4 text-blue-600" />
+                      </div>
+                    </div>
+                  </div>
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-3 text-sm text-slate-600">
+                      <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                      <span>Sarah commented on Homepage Hero Section</span>
+                    </div>
+                    <div className="flex items-center gap-3 text-sm text-slate-600">
+                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                      <span>Marcus resolved 3 feedback threads</span>
+                    </div>
+                    <div className="flex items-center gap-3 text-sm text-slate-600">
+                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                      <span>New app "Dashboard v2" was created</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
 
-          <div
-            className="mt-16 relative animate-fade-in"
-            style={{ animationDelay: '0.5s' }}
-          >
-            <div className="absolute inset-0 bg-gradient-to-t from-white to-transparent h-32 bottom-0 z-10"></div>
-            <div className="bg-white rounded-2xl shadow-2xl border-2 border-[#5941F2]/10 overflow-hidden p-4">
-              <div className="bg-gradient-to-br from-[#5941F2] via-[#F2AEEE] to-[#F2B035] rounded-lg aspect-video flex items-center justify-center">
-                <div className="text-center">
-                  <MessageSquare className="w-16 h-16 text-white mx-auto mb-4" />
-                  <p className="text-white text-sm font-medium">Product Demo Preview</p>
+          <div className="mt-16 flex items-center justify-center gap-12 opacity-60">
+            <div className="flex items-center gap-2">
+              <Shield className="w-5 h-5 text-slate-400" />
+              <span className="text-sm text-slate-500 font-medium">Basecamp</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Target className="w-5 h-5 text-slate-400" />
+              <span className="text-sm text-slate-500 font-medium">Lighthouse</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Zap className="w-5 h-5 text-slate-400" />
+              <span className="text-sm text-slate-500 font-medium">Behance</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <BarChart3 className="w-5 h-5 text-slate-400" />
+              <span className="text-sm text-slate-500 font-medium">Dribbble</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Users className="w-5 h-5 text-slate-400" />
+              <span className="text-sm text-slate-500 font-medium">Metacode</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="features" className="py-20 px-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid md:grid-cols-2 gap-16 items-center mb-32">
+            <div>
+              <div className="inline-flex items-center gap-2 bg-slate-100 px-4 py-2 rounded-full text-sm font-medium text-slate-700 mb-6">
+                Visual Feedback
+              </div>
+              <h2 className="text-5xl font-bold text-slate-900 mb-6">
+                Collecting Feedback
+                <br />
+                Just Got Easier.
+              </h2>
+              <p className="text-lg text-slate-600 mb-8 leading-relaxed">
+                Pin comments anywhere on your web app. Every piece of feedback includes context:
+                screenshots, page location, and element details. No more confusion about what needs to change.
+              </p>
+              <Link
+                to="/signup"
+                className="inline-flex items-center gap-2 bg-slate-900 text-white px-6 py-3 rounded-lg font-medium hover:bg-slate-800 transition-colors"
+              >
+                Learn More
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
+
+            <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-8">
+              <div className="space-y-6">
+                <div className="flex items-center justify-between p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg border border-purple-100">
+                  <div>
+                    <div className="text-sm font-semibold text-slate-900 mb-1">Linear Exp 10</div>
+                    <div className="flex items-center gap-2">
+                      <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
+                      <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
+                      <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
+                      <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
+                      <Star className="w-4 h-4 text-slate-300" />
+                    </div>
+                  </div>
+                  <div className="text-2xl font-bold text-slate-900">$24,120</div>
+                </div>
+
+                <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg p-6 border border-blue-100">
+                  <div className="text-sm font-semibold text-slate-900 mb-4">Store Order Analysis</div>
+                  <div className="flex items-end justify-between gap-3 h-32">
+                    <div className="flex-1 bg-gradient-to-t from-purple-400 to-purple-200 rounded-t-lg" style={{ height: '45%' }}></div>
+                    <div className="flex-1 bg-gradient-to-t from-pink-400 to-pink-200 rounded-t-lg" style={{ height: '85%' }}></div>
+                    <div className="flex-1 bg-gradient-to-t from-yellow-400 to-yellow-200 rounded-t-lg" style={{ height: '65%' }}></div>
+                  </div>
+                  <div className="flex items-center justify-between mt-4 text-xs text-slate-600">
+                    <span>5.0k</span>
+                    <span>7.2k</span>
+                    <span>4.8k</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-gradient-to-br from-purple-50 via-pink-50 to-yellow-50 rounded-3xl p-12 border border-slate-200">
+            <div className="text-center mb-12">
+              <div className="inline-flex items-center gap-2 bg-white px-4 py-2 rounded-full text-sm font-medium text-slate-700 mb-6 shadow-sm">
+                Core Features
+              </div>
+              <h2 className="text-5xl font-bold text-slate-900 mb-4">
+                What Can Our Feedback
+                <br />
+                Platform Do For You?
+              </h2>
+            </div>
+
+            <div className="grid md:grid-cols-3 gap-8">
+              <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
+                <div className="w-12 h-12 bg-gradient-to-br from-yellow-100 to-yellow-200 rounded-lg flex items-center justify-center mb-4">
+                  <Target className="w-6 h-6 text-yellow-700" />
+                </div>
+                <h3 className="text-lg font-bold text-slate-900 mb-2">Spatial Comments & Pins</h3>
+                <p className="text-slate-600 text-sm leading-relaxed">
+                  Click anywhere on your web app to drop a comment pin with exact positioning and context
+                </p>
+              </div>
+
+              <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
+                <div className="w-12 h-12 bg-gradient-to-br from-purple-100 to-purple-200 rounded-lg flex items-center justify-center mb-4">
+                  <Users className="w-6 h-6 text-purple-700" />
+                </div>
+                <h3 className="text-lg font-bold text-slate-900 mb-2">Easy To Collaborate</h3>
+                <p className="text-slate-600 text-sm leading-relaxed">
+                  Real-time collaboration with threaded conversations. Reply, resolve, and track every piece of feedback
+                </p>
+              </div>
+
+              <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
+                <div className="w-12 h-12 bg-gradient-to-br from-blue-100 to-blue-200 rounded-lg flex items-center justify-center mb-4">
+                  <BarChart3 className="w-6 h-6 text-blue-700" />
+                </div>
+                <h3 className="text-lg font-bold text-slate-900 mb-2">Made With Teams/CSS</h3>
+                <p className="text-slate-600 text-sm leading-relaxed">
+                  Integrates seamlessly with Jira, Notion, and GitHub. Export feedback to your existing workflow
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-8 text-center">
+              <Link
+                to="/signup"
+                className="inline-flex items-center gap-2 bg-slate-900 text-white px-6 py-3 rounded-lg font-medium hover:bg-slate-800 transition-colors"
+              >
+                Learn More
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="py-20 px-6 bg-white">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center gap-2 bg-slate-100 px-4 py-2 rounded-full text-sm font-medium text-slate-700 mb-6">
+              Our Testimonial
+            </div>
+            <h2 className="text-5xl font-bold text-slate-900 mb-4">
+              What Our Customers Say
+            </h2>
+            <p className="text-lg text-slate-600 max-w-2xl mx-auto">
+              Trusted by teams worldwide to collect better feedback and ship faster
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8 mb-16">
+            <div className="bg-slate-50 rounded-xl p-8 border border-slate-200">
+              <div className="flex gap-1 mb-4">
+                <Star className="w-5 h-5 text-yellow-500 fill-yellow-500" />
+                <Star className="w-5 h-5 text-yellow-500 fill-yellow-500" />
+                <Star className="w-5 h-5 text-yellow-500 fill-yellow-500" />
+                <Star className="w-5 h-5 text-yellow-500 fill-yellow-500" />
+                <Star className="w-5 h-5 text-yellow-500 fill-yellow-500" />
+              </div>
+              <p className="text-slate-700 mb-6 leading-relaxed">
+                "Using GetCRM CRM Is One Of The Best Decisions We've Ever Made. We've Cut Costs And Keeps Getting Smarter."
+              </p>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-gradient-to-br from-purple-400 to-pink-400 rounded-full"></div>
+                <div>
+                  <div className="font-semibold text-slate-900">Erica Barker</div>
+                  <div className="text-sm text-slate-500">Marketing Director</div>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-slate-50 rounded-xl p-8 border border-slate-200">
+              <div className="flex gap-1 mb-4">
+                <Star className="w-5 h-5 text-yellow-500 fill-yellow-500" />
+                <Star className="w-5 h-5 text-yellow-500 fill-yellow-500" />
+                <Star className="w-5 h-5 text-yellow-500 fill-yellow-500" />
+                <Star className="w-5 h-5 text-yellow-500 fill-yellow-500" />
+                <Star className="w-5 h-5 text-yellow-500 fill-yellow-500" />
+              </div>
+              <p className="text-slate-700 mb-6 leading-relaxed">
+                "GetCRM Is Created For Sales People, It's The Kind Of Tool Every Team Wishes To Try So To Make It Easy."
+              </p>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-indigo-400 rounded-full"></div>
+                <div>
+                  <div className="font-semibold text-slate-900">Henry Jacks</div>
+                  <div className="text-sm text-slate-500">Product Manager</div>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-slate-50 rounded-xl p-8 border border-slate-200">
+              <div className="text-6xl font-bold text-slate-900 mb-2">$2.5M</div>
+              <div className="text-slate-600 text-sm mb-4">
+                More Revenue
+              </div>
+              <p className="text-slate-700 leading-relaxed">
+                Using GetCRM CRM Is One Of The Best Decisions We've Ever Made. We've Cut Costs And Annual Revenue Explode.
+              </p>
+            </div>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            <div className="bg-slate-50 rounded-xl p-8 border border-slate-200">
+              <div className="text-6xl font-bold text-slate-900 mb-2">45%</div>
+              <div className="text-slate-600 text-sm">
+                More Revenue
+              </div>
+            </div>
+
+            <div className="bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl p-8 text-white col-span-2">
+              <h3 className="text-3xl font-bold mb-4">
+                GetCRM Helps You Build
+                <br />
+                Beautiful Website
+              </h3>
+              <div className="space-y-3 mb-6">
+                <div className="flex items-center gap-3">
+                  <Check className="w-5 h-5" />
+                  <span>Simply Copy & Paste</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Check className="w-5 h-5" />
+                  <span>Easy To Customize</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Check className="w-5 h-5" />
+                  <span>Made With Teams/CSS</span>
                 </div>
               </div>
             </div>
@@ -101,161 +374,24 @@ export function Landing() {
         </div>
       </section>
 
-      <section className="py-20 px-6 bg-white">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold mb-4">
-              <span className="bg-gradient-to-r from-[#5941F2] via-[#F2AEEE] to-[#F2B035] bg-clip-text text-transparent">
-                Everything You Need for Better Feedback
-              </span>
+      <section id="pricing" className="py-20 px-6">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-12">
+            <div className="inline-flex items-center gap-2 bg-slate-100 px-4 py-2 rounded-full text-sm font-medium text-slate-700 mb-6">
+              Our Plan
+            </div>
+            <h2 className="text-5xl font-bold text-slate-900 mb-4">
+              Feedback Platform FAQs
             </h2>
-            <p className="text-xl text-slate-600 max-w-2xl mx-auto">
-              Powerful features that transform how teams collect and manage feedback
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="bg-gradient-to-br from-[#5941F2]/5 to-[#F2AEEE]/10 rounded-2xl p-8 border-2 border-[#5941F2]/20 hover:border-[#5941F2]/40 hover:shadow-xl hover:shadow-[#5941F2]/10 transition-all hover:-translate-y-1">
-              <div className="bg-gradient-to-br from-[#5941F2] to-[#F2AEEE] w-14 h-14 rounded-xl flex items-center justify-center mb-6">
-                <Target className="w-7 h-7 text-white" />
-              </div>
-              <h3 className="text-2xl font-bold bg-gradient-to-r from-[#5941F2] to-[#F2AEEE] bg-clip-text text-transparent mb-3">Pin Anywhere</h3>
-              <p className="text-slate-600 leading-relaxed">
-                Click anywhere on any website to drop a comment pin. Capture exact context with spatial positioning.
-              </p>
-            </div>
-
-            <div className="bg-gradient-to-br from-[#F2AEEE]/5 to-[#F2B035]/10 rounded-2xl p-8 border-2 border-[#F2AEEE]/30 hover:border-[#F2AEEE]/50 hover:shadow-xl hover:shadow-[#F2AEEE]/10 transition-all hover:-translate-y-1">
-              <div className="bg-gradient-to-br from-[#F2AEEE] to-[#F2B035] w-14 h-14 rounded-xl flex items-center justify-center mb-6">
-                <Zap className="w-7 h-7 text-white" />
-              </div>
-              <h3 className="text-2xl font-bold bg-gradient-to-r from-[#F2AEEE] to-[#F2B035] bg-clip-text text-transparent mb-3">Real-Time Sync</h3>
-              <p className="text-slate-600 leading-relaxed">
-                See comments appear instantly across all team members. Collaborate live without refreshing.
-              </p>
-            </div>
-
-            <div className="bg-gradient-to-br from-[#F2B035]/5 to-[#F24535]/10 rounded-2xl p-8 border-2 border-[#F2B035]/30 hover:border-[#F2B035]/50 hover:shadow-xl hover:shadow-[#F2B035]/10 transition-all hover:-translate-y-1">
-              <div className="bg-gradient-to-br from-[#F2B035] to-[#F24535] w-14 h-14 rounded-xl flex items-center justify-center mb-6">
-                <Users className="w-7 h-7 text-white" />
-              </div>
-              <h3 className="text-2xl font-bold bg-gradient-to-r from-[#F2B035] to-[#F24535] bg-clip-text text-transparent mb-3">Team Workspaces</h3>
-              <p className="text-slate-600 leading-relaxed">
-                Organize feedback by workspace with role-based access. Invite teammates, clients, and testers.
-              </p>
-            </div>
-
-            <div className="bg-gradient-to-br from-[#F24535]/5 to-[#5941F2]/10 rounded-2xl p-8 border-2 border-[#F24535]/30 hover:border-[#F24535]/50 hover:shadow-xl hover:shadow-[#F24535]/10 transition-all hover:-translate-y-1">
-              <div className="bg-gradient-to-br from-[#F24535] to-[#5941F2] w-14 h-14 rounded-xl flex items-center justify-center mb-6">
-                <Globe className="w-7 h-7 text-white" />
-              </div>
-              <h3 className="text-2xl font-bold bg-gradient-to-r from-[#F24535] to-[#5941F2] bg-clip-text text-transparent mb-3">Universal SDK</h3>
-              <p className="text-slate-600 leading-relaxed">
-                Works on any website. No code changes needed. Just share a review URL and start collecting feedback.
-              </p>
-            </div>
-
-            <div className="bg-gradient-to-br from-[#5941F2]/5 to-[#F2B035]/10 rounded-2xl p-8 border-2 border-[#5941F2]/20 hover:border-[#5941F2]/40 hover:shadow-xl hover:shadow-[#5941F2]/10 transition-all hover:-translate-y-1">
-              <div className="bg-gradient-to-br from-[#5941F2] to-[#F2B035] w-14 h-14 rounded-xl flex items-center justify-center mb-6">
-                <Shield className="w-7 h-7 text-white" />
-              </div>
-              <h3 className="text-2xl font-bold bg-gradient-to-r from-[#5941F2] to-[#F2B035] bg-clip-text text-transparent mb-3">Secure & Private</h3>
-              <p className="text-slate-600 leading-relaxed">
-                Enterprise-grade security with row-level access control. Your feedback stays completely private.
-              </p>
-            </div>
-
-            <div className="bg-gradient-to-br from-[#F2AEEE]/5 to-[#5941F2]/10 rounded-2xl p-8 border-2 border-[#F2AEEE]/30 hover:border-[#F2AEEE]/50 hover:shadow-xl hover:shadow-[#F2AEEE]/10 transition-all hover:-translate-y-1">
-              <div className="bg-gradient-to-br from-[#F2AEEE] to-[#5941F2] w-14 h-14 rounded-xl flex items-center justify-center mb-6">
-                <MessageSquare className="w-7 h-7 text-white" />
-              </div>
-              <h3 className="text-2xl font-bold bg-gradient-to-r from-[#F2AEEE] to-[#5941F2] bg-clip-text text-transparent mb-3">Thread Conversations</h3>
-              <p className="text-slate-600 leading-relaxed">
-                Organize feedback into threads. Reply, resolve, and track status. Never lose context again.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="py-20 px-6 bg-gradient-to-br from-[#5941F2] via-[#F2AEEE] to-[#F2B035] text-white relative overflow-hidden">
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS1vcGFjaXR5PSIwLjAzIiBzdHJva2Utd2lkdGg9IjEiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz48L3N2Zz4=')] opacity-40"></div>
-        <div className="max-w-6xl mx-auto relative z-10">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold mb-4">
-              Trusted by Teams Worldwide
-            </h2>
-            <p className="text-xl text-white/90 max-w-2xl mx-auto">
-              Join thousands of teams shipping better products with Echo
+            <p className="text-lg text-slate-600">
+              Simple pricing that scales with your team
             </p>
           </div>
 
           <div className="grid md:grid-cols-2 gap-8 mb-16">
-            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
-              <div className="flex items-center gap-4 mb-4">
-                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#F2B035] to-[#F24535]"></div>
-                <div>
-                  <div className="font-semibold">Sarah Chen</div>
-                  <div className="text-sm text-white/80">Product Manager, TechCorp</div>
-                </div>
-              </div>
-              <p className="text-white/95 leading-relaxed">
-                "Echo transformed how we collect user feedback. The spatial commenting is brilliant - our designers and developers finally speak the same language."
-              </p>
-            </div>
-
-            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
-              <div className="flex items-center gap-4 mb-4">
-                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#F2AEEE] to-[#5941F2]"></div>
-                <div>
-                  <div className="font-semibold">Marcus Rodriguez</div>
-                  <div className="text-sm text-white/80">Engineering Lead, StartupXYZ</div>
-                </div>
-              </div>
-              <p className="text-white/95 leading-relaxed">
-                "We cut our bug reporting time by 70%. The automatic screenshots and precise location data mean no more 'it's broken somewhere' tickets."
-              </p>
-            </div>
-          </div>
-
-          <div className="grid md:grid-cols-4 gap-8 text-center">
-            <div>
-              <div className="text-4xl font-bold mb-2">10k+</div>
-              <div className="text-white/80">Comments Created</div>
-            </div>
-            <div>
-              <div className="text-4xl font-bold mb-2">500+</div>
-              <div className="text-white/80">Active Teams</div>
-            </div>
-            <div>
-              <div className="text-4xl font-bold mb-2">99.9%</div>
-              <div className="text-white/80">Uptime</div>
-            </div>
-            <div>
-              <div className="text-4xl font-bold mb-2">24/7</div>
-              <div className="text-white/80">Support</div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="py-20 px-6 bg-white">
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl md:text-5xl font-bold mb-4">
-              <span className="bg-gradient-to-r from-[#5941F2] via-[#F2AEEE] to-[#F2B035] bg-clip-text text-transparent">
-                Simple, Transparent Pricing
-              </span>
-            </h2>
-            <p className="text-xl text-slate-600">
-              Start free, upgrade as you grow
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-2 gap-8">
-            <div className="bg-gradient-to-br from-[#F2F2F2] to-white rounded-2xl p-8 border-2 border-slate-200 hover:border-[#5941F2]/30 transition-all hover:shadow-lg">
-              <div className="mb-6">
-                <h3 className="text-2xl font-bold bg-gradient-to-r from-[#5941F2] to-[#F2AEEE] bg-clip-text text-transparent mb-2">Free</h3>
+            <div className="bg-white rounded-2xl p-8 border-2 border-slate-200 hover:border-slate-300 transition-all">
+              <div className="mb-8">
+                <h3 className="text-2xl font-bold text-slate-900 mb-2">Free</h3>
                 <div className="flex items-baseline gap-2">
                   <span className="text-5xl font-bold text-slate-900">$0</span>
                   <span className="text-slate-600">/month</span>
@@ -263,39 +399,39 @@ export function Landing() {
               </div>
               <ul className="space-y-4 mb-8">
                 <li className="flex items-center gap-3">
-                  <Check className="w-5 h-5 text-[#5941F2] flex-shrink-0" />
+                  <Check className="w-5 h-5 text-slate-900 flex-shrink-0" />
                   <span className="text-slate-700">Up to 3 apps</span>
                 </li>
                 <li className="flex items-center gap-3">
-                  <Check className="w-5 h-5 text-[#5941F2] flex-shrink-0" />
-                  <span className="text-slate-700">100 comments/month</span>
+                  <Check className="w-5 h-5 text-slate-900 flex-shrink-0" />
+                  <span className="text-slate-700">100 comments per month</span>
                 </li>
                 <li className="flex items-center gap-3">
-                  <Check className="w-5 h-5 text-[#5941F2] flex-shrink-0" />
+                  <Check className="w-5 h-5 text-slate-900 flex-shrink-0" />
                   <span className="text-slate-700">5 team members</span>
                 </li>
                 <li className="flex items-center gap-3">
-                  <Check className="w-5 h-5 text-[#5941F2] flex-shrink-0" />
+                  <Check className="w-5 h-5 text-slate-900 flex-shrink-0" />
                   <span className="text-slate-700">Basic integrations</span>
                 </li>
               </ul>
               <Link
                 to="/signup"
-                className="block text-center bg-white text-[#5941F2] px-6 py-3 rounded-lg font-semibold hover:bg-gradient-to-r hover:from-[#5941F2]/5 hover:to-[#F2AEEE]/5 transition-colors border-2 border-[#5941F2]/20"
+                className="block text-center bg-slate-100 text-slate-900 px-6 py-3 rounded-lg font-semibold hover:bg-slate-200 transition-colors"
               >
-                Start Free
+                Get Started
               </Link>
             </div>
 
-            <div className="bg-gradient-to-br from-[#5941F2] via-[#F2AEEE] to-[#F2B035] rounded-2xl p-8 text-white border-2 border-white relative shadow-2xl shadow-[#5941F2]/30">
-              <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-[#F2B035] to-[#F24535] text-white px-4 py-1 rounded-full text-sm font-bold shadow-lg">
+            <div className="bg-slate-900 rounded-2xl p-8 text-white relative">
+              <div className="absolute -top-4 right-8 bg-gradient-to-r from-yellow-400 to-yellow-500 text-slate-900 px-4 py-1 rounded-full text-sm font-bold">
                 POPULAR
               </div>
-              <div className="mb-6">
+              <div className="mb-8">
                 <h3 className="text-2xl font-bold mb-2">Pro</h3>
                 <div className="flex items-baseline gap-2">
                   <span className="text-5xl font-bold">$49</span>
-                  <span className="text-white/90">/month</span>
+                  <span className="text-slate-400">/month</span>
                 </div>
               </div>
               <ul className="space-y-4 mb-8">
@@ -322,52 +458,121 @@ export function Landing() {
               </ul>
               <Link
                 to="/signup"
-                className="block text-center bg-white text-[#5941F2] px-6 py-3 rounded-lg font-semibold hover:bg-[#F2F2F2] transition-colors shadow-lg"
+                className="block text-center bg-white text-slate-900 px-6 py-3 rounded-lg font-semibold hover:bg-slate-100 transition-colors"
               >
                 Start Free Trial
               </Link>
             </div>
           </div>
+
+          <div className="space-y-4">
+            <details className="bg-white rounded-xl p-6 border border-slate-200 cursor-pointer">
+              <summary className="font-semibold text-slate-900 text-lg">
+                How do I integrate feedback with other tools?
+              </summary>
+              <p className="mt-4 text-slate-600 leading-relaxed">
+                Echo integrates seamlessly with Jira, Notion, and GitHub. Connect your accounts in settings and feedback will sync automatically to your existing workflow.
+              </p>
+            </details>
+
+            <details className="bg-white rounded-xl p-6 border border-slate-200 cursor-pointer">
+              <summary className="font-semibold text-slate-900 text-lg">
+                Is there a free trial available?
+              </summary>
+              <p className="mt-4 text-slate-600 leading-relaxed">
+                Yes! All new accounts get a 14-day free trial with full access to Pro features. No credit card required.
+              </p>
+            </details>
+
+            <details className="bg-white rounded-xl p-6 border border-slate-200 cursor-pointer">
+              <summary className="font-semibold text-slate-900 text-lg">
+                Is feedback platform suitable for small businesses?
+              </summary>
+              <p className="mt-4 text-slate-600 leading-relaxed">
+                Absolutely! Our Free plan is perfect for small teams and startups. As you grow, you can easily upgrade to Pro for unlimited access.
+              </p>
+            </details>
+          </div>
         </div>
       </section>
 
-      <section className="py-20 px-6 bg-gradient-to-r from-[#F2B035] via-[#F24535] to-[#5941F2] text-white">
+      <section className="py-20 px-6 bg-gradient-to-br from-pink-50 via-purple-50 to-yellow-50">
         <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-4xl md:text-5xl font-bold mb-6">
-            Ready to Transform Your Feedback Process?
+          <h2 className="text-5xl font-bold text-slate-900 mb-6">
+            Are You Interested
+            <br />
+            With Echo?
           </h2>
-          <p className="text-xl text-white/95 mb-10 max-w-2xl mx-auto">
-            Join teams shipping better products with contextual, collaborative feedback.
+          <p className="text-lg text-slate-600 mb-10">
+            Join thousands of teams collecting better feedback and shipping faster products
           </p>
           <Link
             to="/signup"
-            className="inline-flex items-center gap-2 bg-white text-[#5941F2] px-10 py-5 rounded-xl font-bold text-lg hover:bg-[#F2F2F2] transition-all hover:scale-105 shadow-2xl"
+            className="inline-flex items-center gap-2 bg-slate-900 text-white px-10 py-4 rounded-lg font-semibold text-lg hover:bg-slate-800 transition-all"
           >
-            Get Started for Free
-            <ArrowRight className="w-6 h-6" />
+            Get Started Now
+            <ArrowRight className="w-5 h-5" />
           </Link>
-          <p className="mt-6 text-white/90 text-sm">
-            No credit card required · 14-day free trial · Cancel anytime
-          </p>
         </div>
       </section>
 
-      <footer className="bg-slate-900 text-slate-400 py-12 px-6">
-        <div className="max-w-6xl mx-auto">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-6">
-            <div className="flex items-center gap-2">
-              <MessageSquare className="w-6 h-6 text-[#5941F2]" />
-              <span className="text-xl font-bold bg-gradient-to-r from-[#5941F2] to-[#F2AEEE] bg-clip-text text-transparent">Echo</span>
+      <footer className="bg-gradient-to-br from-pink-100 via-purple-100 to-yellow-100 py-12 px-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex flex-col md:flex-row justify-between items-start gap-12 mb-8">
+            <div>
+              <div className="flex items-center gap-2 mb-4">
+                <MessageSquare className="w-7 h-7 text-slate-900" />
+                <span className="text-xl font-bold text-slate-900">Echo</span>
+              </div>
+              <p className="text-slate-600 max-w-xs">
+                Collaborative feedback platform for modern teams
+              </p>
             </div>
-            <div className="flex gap-8">
-              <a href="#" className="hover:text-white transition-colors">Privacy</a>
-              <a href="#" className="hover:text-white transition-colors">Terms</a>
-              <a href="#" className="hover:text-white transition-colors">Contact</a>
-              <a href="#" className="hover:text-white transition-colors">Blog</a>
+
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+              <div>
+                <h4 className="font-semibold text-slate-900 mb-3">Company</h4>
+                <div className="space-y-2">
+                  <a href="#" className="block text-slate-600 hover:text-slate-900 text-sm">About Us</a>
+                  <a href="#" className="block text-slate-600 hover:text-slate-900 text-sm">About Us</a>
+                  <a href="#" className="block text-slate-600 hover:text-slate-900 text-sm">Contact</a>
+                </div>
+              </div>
+
+              <div>
+                <h4 className="font-semibold text-slate-900 mb-3">Career</h4>
+                <div className="space-y-2">
+                  <a href="#" className="block text-slate-600 hover:text-slate-900 text-sm">Jobs</a>
+                </div>
+              </div>
+
+              <div>
+                <h4 className="font-semibold text-slate-900 mb-3">Legal Information</h4>
+                <div className="space-y-2">
+                  <a href="#" className="block text-slate-600 hover:text-slate-900 text-sm">Privacy Policy</a>
+                  <a href="#" className="block text-slate-600 hover:text-slate-900 text-sm">Terms of Service</a>
+                  <a href="#" className="block text-slate-600 hover:text-slate-900 text-sm">Submit Complaints</a>
+                </div>
+              </div>
             </div>
           </div>
-          <div className="mt-8 pt-8 border-t border-slate-800 text-center text-sm">
-            2025 Echo. All rights reserved.
+
+          <div className="pt-8 border-t border-slate-300 flex justify-between items-center">
+            <p className="text-sm text-slate-600">© 2025 Echo. All rights reserved.</p>
+            <div className="flex gap-4">
+              <a href="#" className="w-8 h-8 bg-white rounded-full flex items-center justify-center hover:bg-slate-100 transition-colors">
+                <span className="text-slate-900 text-sm font-bold">f</span>
+              </a>
+              <a href="#" className="w-8 h-8 bg-white rounded-full flex items-center justify-center hover:bg-slate-100 transition-colors">
+                <span className="text-slate-900 text-sm font-bold">in</span>
+              </a>
+              <a href="#" className="w-8 h-8 bg-white rounded-full flex items-center justify-center hover:bg-slate-100 transition-colors">
+                <span className="text-slate-900 text-sm font-bold">tw</span>
+              </a>
+              <a href="#" className="w-8 h-8 bg-white rounded-full flex items-center justify-center hover:bg-slate-100 transition-colors">
+                <span className="text-slate-900 text-sm font-bold">yt</span>
+              </a>
+            </div>
           </div>
         </div>
       </footer>
