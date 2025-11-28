@@ -342,6 +342,19 @@ export function PublicReview() {
     if (!newCommentText.trim() || !newCommentPosition || !appId || !user) return;
 
     try {
+      const { data: canCreate, error: checkError } = await supabase
+        .rpc('can_user_create_comment', { user_id: user.id });
+
+      if (checkError) {
+        alert('Failed to check subscription limits. Please try again.');
+        return;
+      }
+
+      if (!canCreate) {
+        alert('You have reached your comment limit for this month. Please upgrade to Pro for unlimited comments.');
+        return;
+      }
+
       const screenshot = await captureScreenshot();
       const pageTitle = iframeRef.current?.contentDocument?.title || 'Untitled Page';
 
@@ -408,6 +421,19 @@ export function PublicReview() {
     if (!replyText.trim() || !selectedThread || !user) return;
 
     try {
+      const { data: canCreate, error: checkError } = await supabase
+        .rpc('can_user_create_comment', { user_id: user.id });
+
+      if (checkError) {
+        alert('Failed to check subscription limits. Please try again.');
+        return;
+      }
+
+      if (!canCreate) {
+        alert('You have reached your comment limit for this month. Please upgrade to Pro for unlimited comments.');
+        return;
+      }
+
       const { error } = await supabase.from('comments').insert({
         thread_id: selectedThread.id,
         author_id: user.id,

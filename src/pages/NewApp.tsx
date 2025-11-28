@@ -22,38 +22,58 @@ export function NewApp() {
     setLoading(true);
     setError('');
 
-    let normalizedUrl = baseUrl.trim();
-    if (!normalizedUrl.startsWith('http://') && !normalizedUrl.startsWith('https://')) {
-      normalizedUrl = 'https://' + normalizedUrl;
-    }
-
     try {
-      new URL(normalizedUrl);
-    } catch {
-      setError('Please enter a valid URL');
+      const { data: canCreate, error: checkError } = await supabase
+        .rpc('can_user_create_app', { user_id: user.id });
+
+      if (checkError) {
+        setError('Failed to check subscription limits');
+        setLoading(false);
+        return;
+      }
+
+      if (!canCreate) {
+        setError('You have reached your app limit. Please upgrade to Pro to create more apps.');
+        setLoading(false);
+        return;
+      }
+
+      let normalizedUrl = baseUrl.trim();
+      if (!normalizedUrl.startsWith('http://') && !normalizedUrl.startsWith('https://')) {
+        normalizedUrl = 'https://' + normalizedUrl;
+      }
+
+      try {
+        new URL(normalizedUrl);
+      } catch {
+        setError('Please enter a valid URL');
+        setLoading(false);
+        return;
+      }
+
+      const { data, error: insertError } = await supabase
+        .from('apps')
+        .insert({
+          workspace_id: currentWorkspace.id,
+          name,
+          base_url: normalizedUrl,
+          description: description || null,
+          owner_id: user.id,
+        })
+        .select()
+        .single();
+
+      if (insertError) {
+        setError(insertError.message);
+        setLoading(false);
+        return;
+      }
+
+      navigate(`/dashboard/apps/${data.id}`);
+    } catch (err) {
+      setError('An unexpected error occurred');
       setLoading(false);
-      return;
     }
-
-    const { data, error: insertError } = await supabase
-      .from('apps')
-      .insert({
-        workspace_id: currentWorkspace.id,
-        name,
-        base_url: normalizedUrl,
-        description: description || null,
-        owner_id: user.id,
-      })
-      .select()
-      .single();
-
-    if (insertError) {
-      setError(insertError.message);
-      setLoading(false);
-      return;
-    }
-
-    navigate(`/dashboard/apps/${data.id}`);
   };
 
   return (
