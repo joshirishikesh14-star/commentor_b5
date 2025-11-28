@@ -412,66 +412,74 @@ export function Workspace() {
                     )}
 
                     <div className="space-y-2">
-                      {members.map((member) => {
-                        const isCurrentUser = member.user_id === user?.id;
-                        const isMemberOwner = member.user_id === workspace.owner_id;
+                      {members.length === 0 ? (
+                        <div className="text-center py-8 text-slate-500 text-sm">
+                          No members yet. Invite someone to get started.
+                        </div>
+                      ) : (
+                        members.map((member) => {
+                          const isCurrentUser = member.user_id === user?.id;
+                          const isMemberOwner = member.user_id === workspace.owner_id;
 
-                        return (
-                          <div
-                            key={member.id}
-                            className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-200"
-                          >
-                            <div className="flex items-center gap-3">
-                              <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
-                                <span className="text-blue-600 font-medium text-sm">
-                                  {member.profiles.full_name.charAt(0).toUpperCase()}
-                                </span>
+                          return (
+                            <div
+                              key={member.id}
+                              className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-200 hover:border-slate-300 transition"
+                            >
+                              <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+                                  <span className="text-blue-600 font-medium text-sm">
+                                    {member.profiles.full_name.charAt(0).toUpperCase()}
+                                  </span>
+                                </div>
+                                <div>
+                                  <div className="flex items-center gap-2">
+                                    <p className="font-medium text-slate-900 text-sm">
+                                      {member.profiles.full_name}
+                                      {isCurrentUser && <span className="text-slate-500 text-xs ml-1">(You)</span>}
+                                    </p>
+                                    {isMemberOwner && (
+                                      <Crown className="w-3.5 h-3.5 text-yellow-500" title="Workspace Owner" />
+                                    )}
+                                  </div>
+                                  <div className="flex items-center gap-1 text-xs text-slate-500">
+                                    <Mail className="w-3 h-3" />
+                                    {member.profiles.email}
+                                  </div>
+                                </div>
                               </div>
-                              <div>
-                                <div className="flex items-center gap-2">
-                                  <p className="font-medium text-slate-900 text-sm">
-                                    {member.profiles.full_name}
-                                    {isCurrentUser && <span className="text-slate-500 text-xs">(You)</span>}
-                                  </p>
-                                  {isMemberOwner && (
-                                    <Crown className="w-3.5 h-3.5 text-yellow-500" />
-                                  )}
-                                </div>
-                                <div className="flex items-center gap-1 text-xs text-slate-500">
-                                  <Mail className="w-3 h-3" />
-                                  {member.profiles.email}
-                                </div>
+                              <div className="flex items-center gap-2">
+                                {isOwner && !isMemberOwner ? (
+                                  <select
+                                    value={member.role}
+                                    onChange={(e) => handleUpdateMemberRole(member.id, e.target.value)}
+                                    className="px-3 py-1 text-xs border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                                    title="Change member role"
+                                  >
+                                    <option value="viewer">Viewer</option>
+                                    <option value="commenter">Commenter</option>
+                                    <option value="moderator">Moderator</option>
+                                    <option value="admin">Admin</option>
+                                  </select>
+                                ) : (
+                                  <span className="px-3 py-1 text-xs bg-slate-200 text-slate-700 rounded-lg capitalize">
+                                    {member.role}
+                                  </span>
+                                )}
+                                {isOwner && !isMemberOwner && !isCurrentUser && (
+                                  <button
+                                    onClick={() => handleRemoveMember(member.id, member.user_id)}
+                                    className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition"
+                                    title="Remove member"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </button>
+                                )}
                               </div>
                             </div>
-                            <div className="flex items-center gap-2">
-                              {isOwner && !isMemberOwner ? (
-                                <select
-                                  value={member.role}
-                                  onChange={(e) => handleUpdateMemberRole(member.id, e.target.value)}
-                                  className="px-3 py-1 text-xs border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                >
-                                  <option value="viewer">Viewer</option>
-                                  <option value="commenter">Commenter</option>
-                                  <option value="moderator">Moderator</option>
-                                  <option value="admin">Admin</option>
-                                </select>
-                              ) : (
-                                <span className="px-3 py-1 text-xs bg-slate-200 text-slate-700 rounded-lg capitalize">
-                                  {member.role}
-                                </span>
-                              )}
-                              {isOwner && !isMemberOwner && !isCurrentUser && (
-                                <button
-                                  onClick={() => handleRemoveMember(member.id, member.user_id)}
-                                  className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition"
-                                >
-                                  <Trash2 className="w-4 h-4" />
-                                </button>
-                              )}
-                            </div>
-                          </div>
-                        );
-                      })}
+                          );
+                        })
+                      )}
                     </div>
                   </div>
                 )}
