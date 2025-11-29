@@ -73,4 +73,11 @@
   --radius-lg: 12px;
   --radius-xl: 16px;
   --radius-full: 9999px;
+
+  /* Logo */
+  --logo-font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --logo-font-weight: 700;
+  --logo-font-size: 24px;
+  --logo-letter-spacing: -0.02em;
+  --logo-text-transform: none;
 }

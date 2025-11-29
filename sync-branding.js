@@ -81,6 +81,8 @@ export const BRANDING = {
   description: '${BRANDING.description}',
   metaDescription: '${BRANDING.metaDescription}',
 
+  logo: ${JSON.stringify(BRANDING.logo, null, 2)},
+
   colors: ${JSON.stringify(BRANDING.colors, null, 2)},
 
   typography: ${JSON.stringify(BRANDING.typography, null, 2)},
@@ -171,6 +173,13 @@ const cssVars = `/**
   --radius-lg: ${BRANDING.borderRadius.lg};
   --radius-xl: ${BRANDING.borderRadius.xl};
   --radius-full: ${BRANDING.borderRadius.full};
+
+  /* Logo */
+  --logo-font-family: ${BRANDING.logo.font.family};
+  --logo-font-weight: ${BRANDING.logo.font.weight};
+  --logo-font-size: ${BRANDING.logo.font.size};
+  --logo-letter-spacing: ${BRANDING.logo.font.letterSpacing};
+  --logo-text-transform: ${BRANDING.logo.font.textTransform};
 }
 `;
 

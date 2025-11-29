@@ -29,6 +29,47 @@ export const BRANDING = {
   metaDescription: 'Pin contextual feedback directly on any web application. Collaborate with your team in real-time, track issues, and ship better products.',
 
   // ============================================================================
+  // LOGO & ASSETS
+  // ============================================================================
+
+  logo: {
+    // Logo Type: 'text' or 'image'
+    // - 'text': Uses productName as text logo with custom font
+    // - 'image': Uses image files from /public/logos/
+    type: 'text',
+
+    // Font settings (used when type = 'text')
+    font: {
+      family: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+      weight: 700,        // 700 = bold
+      size: '24px',       // Default size
+      letterSpacing: '-0.02em',
+      textTransform: 'none', // 'none', 'uppercase', 'lowercase', 'capitalize'
+    },
+
+    // Image paths (used when type = 'image')
+    // Place your logo files in /public/logos/
+    images: {
+      main: '/logos/logo.svg',           // Primary logo
+      light: '/logos/logo-light.svg',    // For dark backgrounds
+      dark: '/logos/logo-dark.svg',      // For light backgrounds
+      icon: '/logos/logo-icon.svg',      // Icon only (square)
+    },
+
+    // Extension icons (Chrome extension)
+    // Place files in /extension/logos/ with exact names
+    extension: {
+      icon16: 'logos/icon16.png',
+      icon32: 'logos/icon32.png',
+      icon48: 'logos/icon48.png',
+      icon128: 'logos/icon128.png',
+    },
+
+    // Favicon (will be generated from icon or use custom)
+    favicon: '/logos/logo-icon.svg',  // or .png, .ico
+  },
+
+  // ============================================================================
   // COLOR PALETTE
   // ============================================================================
 
