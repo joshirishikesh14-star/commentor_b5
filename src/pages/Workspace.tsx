@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
-import { Users, Mail, Trash2, Edit2, Plus, Crown, X, Save, Building2, ChevronDown, ChevronUp } from 'lucide-react';
+import { Users, Mail, Trash2, Edit2, Plus, Crown, X, Save, Building2, ChevronDown, ChevronUp, CreditCard } from 'lucide-react';
 import { useWorkspace } from '../contexts/WorkspaceContext';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
+import { MemberBillingManager } from '../components/MemberBillingManager';
 
 interface WorkspaceMember {
   id: string;
@@ -363,22 +364,33 @@ export function Workspace() {
                 </div>
 
                 {isExpanded && (
-                  <div className="p-6 border-t border-slate-200">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center gap-2">
-                        <Users className="w-5 h-5 text-slate-600" />
-                        <h3 className="text-base font-semibold text-slate-900">Members</h3>
+                  <div className="p-6 border-t border-slate-200 space-y-8">
+                    {/* Billing Section */}
+                    <div>
+                      <div className="flex items-center gap-2 mb-4">
+                        <CreditCard className="w-5 h-5 text-slate-600" />
+                        <h3 className="text-base font-semibold text-slate-900">Team Billing & Subscriptions</h3>
                       </div>
-                      {isOwner && (
-                        <button
-                          onClick={() => setInviteForm({ workspaceId: workspace.id, email: '', role: 'commenter' })}
-                          className="px-3 py-1.5 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition flex items-center gap-2"
-                        >
-                          <Plus className="w-4 h-4" />
-                          Invite Member
-                        </button>
-                      )}
+                      <MemberBillingManager workspaceId={workspace.id} />
                     </div>
+
+                    {/* Members Section */}
+                    <div>
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center gap-2">
+                          <Users className="w-5 h-5 text-slate-600" />
+                          <h3 className="text-base font-semibold text-slate-900">Members</h3>
+                        </div>
+                        {isOwner && (
+                          <button
+                            onClick={() => setInviteForm({ workspaceId: workspace.id, email: '', role: 'commenter' })}
+                            className="px-3 py-1.5 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition flex items-center gap-2"
+                          >
+                            <Plus className="w-4 h-4" />
+                            Invite Member
+                          </button>
+                        )}
+                      </div>
 
                     {inviteForm?.workspaceId === workspace.id && (
                       <div className="mb-4 p-4 bg-slate-50 rounded-lg border border-slate-200">
@@ -486,6 +498,7 @@ export function Workspace() {
                           );
                         })
                       )}
+                    </div>
                     </div>
                   </div>
                 )}
