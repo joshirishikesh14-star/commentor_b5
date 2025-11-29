@@ -266,18 +266,22 @@ function BillingSettings() {
         </div>
 
         {currentWorkspace && (
-          <div className="bg-gradient-to-br from-slate-50 to-slate-100 rounded-xl p-6 border border-slate-200">
-            <h3 className="text-lg font-semibold text-slate-900 mb-3">Workspace Billing</h3>
-            <p className="text-sm text-slate-600 mb-4">
-              To manage team member billing and view payment history for <strong>{currentWorkspace.name}</strong>,
-              visit the Workspace Settings page.
-            </p>
+          <div className="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl p-6 border-2 border-blue-200">
+            <div className="flex items-start gap-3 mb-4">
+              <CreditCard className="w-6 h-6 text-blue-600 mt-0.5" />
+              <div>
+                <h3 className="text-lg font-semibold text-slate-900 mb-1">Make a Payment</h3>
+                <p className="text-sm text-slate-700">
+                  Manage subscriptions and make payments for team members in <strong>{currentWorkspace.name}</strong>
+                </p>
+              </div>
+            </div>
             <a
               href={`/workspace/${currentWorkspace.id}`}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition-colors text-sm font-medium"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all shadow-lg hover:shadow-xl font-medium"
             >
-              <Users className="w-4 h-4" />
-              Manage Team Billing
+              <Users className="w-5 h-5" />
+              Manage Team Billing & Payments
             </a>
           </div>
         )}

@@ -390,58 +390,25 @@ export function Landing() {
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-4xl md:text-5xl font-bold mb-4 text-slate-900">
-              Simple, Transparent Pricing
+              Simple Per-Seat Pricing
             </h2>
             <p className="text-xl text-slate-600">
-              Start free, upgrade as you grow
+              Pay only for active team members. No complex tiers.
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-8">
-            <div className="bg-gradient-to-br from-slate-50 to-white rounded-2xl p-8 border border-slate-200 hover:border-slate-300 transition-all hover:shadow-lg">
-              <div className="mb-6">
-                <h3 className="text-2xl font-bold text-slate-900 mb-2">Free</h3>
-                <div className="flex items-baseline gap-2">
-                  <span className="text-5xl font-bold text-slate-900">$0</span>
-                  <span className="text-slate-600">/month</span>
-                </div>
-              </div>
-              <ul className="space-y-4 mb-8">
-                <li className="flex items-center gap-3">
-                  <Check className="w-5 h-5 text-slate-900 flex-shrink-0" />
-                  <span className="text-slate-700">Up to 3 apps</span>
-                </li>
-                <li className="flex items-center gap-3">
-                  <Check className="w-5 h-5 text-slate-900 flex-shrink-0" />
-                  <span className="text-slate-700">100 comments/month</span>
-                </li>
-                <li className="flex items-center gap-3">
-                  <Check className="w-5 h-5 text-slate-900 flex-shrink-0" />
-                  <span className="text-slate-700">5 team members</span>
-                </li>
-                <li className="flex items-center gap-3">
-                  <Check className="w-5 h-5 text-slate-900 flex-shrink-0" />
-                  <span className="text-slate-700">Basic integrations</span>
-                </li>
-              </ul>
-              <Link
-                to="/signup"
-                className="block text-center bg-slate-100 text-slate-900 px-6 py-3 rounded-lg font-semibold hover:bg-slate-200 transition-colors border border-slate-200"
-              >
-                Start Free
-              </Link>
-            </div>
-
+          <div className="max-w-2xl mx-auto">
             <div className="bg-slate-900 rounded-2xl p-8 text-white relative shadow-xl">
               <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-yellow-400 text-slate-900 px-4 py-1 rounded-full text-sm font-bold shadow-lg">
                 POPULAR
               </div>
-              <div className="mb-6">
-                <h3 className="text-2xl font-bold mb-2">Pro</h3>
-                <div className="flex items-baseline gap-2">
-                  <span className="text-5xl font-bold">$49</span>
-                  <span className="text-slate-400">/month</span>
+              <div className="mb-6 text-center">
+                <h3 className="text-2xl font-bold mb-4">Pro</h3>
+                <div className="flex items-baseline justify-center gap-2 mb-2">
+                  <span className="text-5xl font-bold">$10</span>
+                  <span className="text-slate-400">/member/month</span>
                 </div>
+                <p className="text-slate-300 text-sm">14-day free trial for each member</p>
               </div>
               <ul className="space-y-4 mb-8">
                 <li className="flex items-center gap-3">
@@ -458,6 +425,10 @@ export function Landing() {
                 </li>
                 <li className="flex items-center gap-3">
                   <Check className="w-5 h-5 text-white flex-shrink-0" />
+                  <span>File attachments</span>
+                </li>
+                <li className="flex items-center gap-3">
+                  <Check className="w-5 h-5 text-white flex-shrink-0" />
                   <span>Jira, Notion, GitHub sync</span>
                 </li>
                 <li className="flex items-center gap-3">
@@ -471,6 +442,27 @@ export function Landing() {
               >
                 Start Free Trial
               </Link>
+            </div>
+          </div>
+
+          <div className="mt-12 text-center">
+            <p className="text-slate-600 mb-4">How it works:</p>
+            <div className="grid md:grid-cols-3 gap-6 text-sm">
+              <div className="bg-slate-50 rounded-lg p-4 border border-slate-200">
+                <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold mx-auto mb-2">1</div>
+                <h4 className="font-semibold text-slate-900 mb-1">Sign Up Free</h4>
+                <p className="text-slate-600">Create your workspace and invite team members</p>
+              </div>
+              <div className="bg-slate-50 rounded-lg p-4 border border-slate-200">
+                <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold mx-auto mb-2">2</div>
+                <h4 className="font-semibold text-slate-900 mb-1">14-Day Trial</h4>
+                <p className="text-slate-600">Each member gets full access for 14 days</p>
+              </div>
+              <div className="bg-slate-50 rounded-lg p-4 border border-slate-200">
+                <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold mx-auto mb-2">3</div>
+                <h4 className="font-semibold text-slate-900 mb-1">Pay Per Seat</h4>
+                <p className="text-slate-600">$10/month per active member after trial</p>
+              </div>
             </div>
           </div>
         </div>
