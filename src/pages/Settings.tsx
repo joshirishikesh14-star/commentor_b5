@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useWorkspace } from '../contexts/WorkspaceContext';
 import { supabase } from '../lib/supabase';
-import { User, Building2, Plug, CheckCircle, XCircle, Loader, ExternalLink, CreditCard, Crown, AlertTriangle } from 'lucide-react';
+import { User, Building2, Plug, CheckCircle, XCircle, Loader, ExternalLink, CreditCard, Crown, AlertTriangle, Users } from 'lucide-react';
 import { JiraService, createOrUpdateJiraConfig, getJiraConfig } from '../lib/jira';
 
 export function Settings() {
