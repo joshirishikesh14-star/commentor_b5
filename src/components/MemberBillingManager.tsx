@@ -111,7 +111,8 @@ export function MemberBillingManager({ workspaceId, isAdmin }: MemberBillingMana
 
     initializeRazorpay({
       amount,
-      orderId: `order_${Date.now()}`,
+      memberId,
+      workspaceId,
       description: `Monthly subscription - ${member.profiles.email}`,
       prefill: {
         name: member.profiles.full_name || undefined,

@@ -26,7 +26,7 @@ export interface CouponCode {
 }
 
 export const RAZORPAY_KEY_ID = import.meta.env.VITE_RAZORPAY_KEY_ID || '';
-export const DEFAULT_MONTHLY_COST = 5.00;
+export const DEFAULT_MONTHLY_COST = 10.00;
 
 export async function validateCoupon(code: string, amount: number) {
   try {
@@ -207,10 +207,11 @@ export async function getWorkspaceBillingHistory(workspaceId: string) {
   }
 }
 
-export function initializeRazorpay(options: {
+export async function initializeRazorpay(options: {
   amount: number;
+  memberId: string;
+  workspaceId: string;
   currency?: string;
-  orderId: string;
   description: string;
   prefill?: {
     name?: string;
@@ -223,43 +224,97 @@ export function initializeRazorpay(options: {
   }) => void;
   onFailure: (error: Error) => void;
 }) {
-  if (!RAZORPAY_KEY_ID) {
-    console.error('Razorpay Key ID not configured');
-    options.onFailure(new Error('Payment gateway not configured'));
-    return;
-  }
-
-  const razorpayOptions = {
-    key: RAZORPAY_KEY_ID,
-    amount: Math.round(options.amount * 100),
-    currency: options.currency || 'USD',
-    name: 'Echo',
-    description: options.description,
-    order_id: options.orderId,
-    prefill: options.prefill,
-    theme: {
-      color: '#0F172A'
-    },
-    handler: (response: {
-      razorpay_payment_id: string;
-      razorpay_order_id: string;
-      razorpay_signature: string;
-    }) => {
-      options.onSuccess(response);
-    },
-    modal: {
-      ondismiss: () => {
-        options.onFailure(new Error('Payment cancelled by user'));
-      }
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      options.onFailure(new Error('Not authenticated'));
+      return;
     }
-  };
 
-  const rzp = new (window as any).Razorpay(razorpayOptions);
-  rzp.on('payment.failed', (response: { error: { description: string } }) => {
-    options.onFailure(new Error(response.error.description));
-  });
+    const response = await fetch(
+      `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-razorpay-order`,
+      {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          memberId: options.memberId,
+          workspaceId: options.workspaceId,
+          amount: Math.round(options.amount * 100),
+        }),
+      }
+    );
 
-  rzp.open();
+    const result = await response.json();
+
+    if (!result.success || !result.order) {
+      throw new Error(result.error || 'Failed to create order');
+    }
+
+    const razorpayOptions = {
+      key: result.keyId,
+      amount: result.order.amount,
+      currency: result.order.currency,
+      name: 'Echo',
+      description: options.description,
+      order_id: result.order.id,
+      prefill: options.prefill,
+      theme: {
+        color: '#0F172A'
+      },
+      handler: async (response: {
+        razorpay_payment_id: string;
+        razorpay_order_id: string;
+        razorpay_signature: string;
+      }) => {
+        try {
+          const verifyResponse = await fetch(
+            `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/verify-razorpay-payment`,
+            {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${session.access_token}`,
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
+                memberId: options.memberId,
+                workspaceId: options.workspaceId,
+              }),
+            }
+          );
+
+          const verifyResult = await verifyResponse.json();
+
+          if (verifyResult.success) {
+            options.onSuccess(response);
+          } else {
+            throw new Error(verifyResult.error || 'Payment verification failed');
+          }
+        } catch (error) {
+          options.onFailure(error instanceof Error ? error : new Error('Payment verification failed'));
+        }
+      },
+      modal: {
+        ondismiss: () => {
+          options.onFailure(new Error('Payment cancelled by user'));
+        }
+      }
+    };
+
+    const rzp = new (window as any).Razorpay(razorpayOptions);
+    rzp.on('payment.failed', (response: { error: { description: string } }) => {
+      options.onFailure(new Error(response.error.description));
+    });
+
+    rzp.open();
+  } catch (error) {
+    options.onFailure(error instanceof Error ? error : new Error('Failed to initialize payment'));
+  }
 }
 
 export async function getWorkspaceMembers(workspaceId: string) {
