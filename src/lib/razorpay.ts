@@ -339,3 +339,50 @@ export async function getWorkspaceMembers(workspaceId: string) {
     return { data: null, error };
   }
 }
+
+export async function checkWorkspaceAccess(workspaceId: string): Promise<{
+  hasAccess: boolean;
+  isExpired: boolean;
+  message?: string;
+}> {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      return { hasAccess: false, isExpired: false, message: 'Not authenticated' };
+    }
+
+    const { data: canAccess, error } = await supabase.rpc('can_access_workspace', {
+      p_workspace_id: workspaceId,
+      p_user_id: user.id
+    });
+
+    if (error) {
+      console.error('Error checking workspace access:', error);
+      return { hasAccess: false, isExpired: false, message: 'Error checking access' };
+    }
+
+    if (!canAccess) {
+      const { data: member } = await supabase
+        .from('workspace_members')
+        .select('payment_status, subscription_expires_at')
+        .eq('workspace_id', workspaceId)
+        .eq('user_id', user.id)
+        .single();
+
+      if (member?.payment_status === 'overdue' || member?.payment_status === 'unpaid') {
+        return {
+          hasAccess: false,
+          isExpired: true,
+          message: 'Your subscription has expired. Please renew to continue using this workspace.'
+        };
+      }
+
+      return { hasAccess: false, isExpired: false, message: 'Access denied' };
+    }
+
+    return { hasAccess: true, isExpired: false };
+  } catch (error) {
+    console.error('Error checking workspace access:', error);
+    return { hasAccess: false, isExpired: false, message: 'Error checking access' };
+  }
+}

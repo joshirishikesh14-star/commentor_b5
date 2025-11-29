@@ -66,7 +66,11 @@ Deno.serve(async (req: Request) => {
       throw new Error('Failed to update billing record');
     }
 
-    const nextBillingDate = new Date();
+    const now = new Date();
+    const subscriptionExpiresAt = new Date(now);
+    subscriptionExpiresAt.setMonth(subscriptionExpiresAt.getMonth() + 1);
+
+    const nextBillingDate = new Date(now);
     nextBillingDate.setMonth(nextBillingDate.getMonth() + 1);
 
     const { error: updateMemberError } = await supabase
@@ -75,6 +79,7 @@ Deno.serve(async (req: Request) => {
         is_paid: true,
         payment_status: 'paid',
         next_billing_date: nextBillingDate.toISOString(),
+        subscription_expires_at: subscriptionExpiresAt.toISOString(),
       })
       .eq('id', memberId);
 
@@ -87,6 +92,7 @@ Deno.serve(async (req: Request) => {
       JSON.stringify({
         success: true,
         message: 'Payment verified successfully',
+        subscription_expires_at: subscriptionExpiresAt.toISOString(),
       }),
       {
         headers: {
