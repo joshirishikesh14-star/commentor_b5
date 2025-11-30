@@ -37,15 +37,8 @@ export function SharedWithMe() {
 
     const { data: memberships, error: memberError } = await supabase
       .from('workspace_members')
-      .select(`
-        role,
-        joined_at,
-        invited_by,
-        workspace_id,
-        workspaces!inner(id, name, owner_id)
-      `)
-      .eq('user_id', user.id)
-      .neq('workspaces.owner_id', user.id);
+      .select('role, joined_at, invited_by, workspace_id')
+      .eq('user_id', user.id);
 
     if (memberError) {
       console.error('Error fetching workspace memberships:', memberError);
@@ -58,12 +51,31 @@ export function SharedWithMe() {
       return;
     }
 
-    const workspaceIds = memberships.map((m: any) => m.workspace_id);
+    const workspaceIds = memberships.map((m) => m.workspace_id);
+
+    const { data: workspaces, error: workspacesError } = await supabase
+      .from('workspaces')
+      .select('id, name, owner_id')
+      .in('id', workspaceIds)
+      .neq('owner_id', user.id);
+
+    if (workspacesError) {
+      console.error('Error fetching workspaces:', workspacesError);
+      setLoading(false);
+      return;
+    }
+
+    if (!workspaces || workspaces.length === 0) {
+      setLoading(false);
+      return;
+    }
+
+    const sharedWorkspaceIds = workspaces.map((w) => w.id);
 
     const { data: apps, error: appsError } = await supabase
       .from('apps')
       .select('*')
-      .in('workspace_id', workspaceIds)
+      .in('workspace_id', sharedWorkspaceIds)
       .order('created_at', { ascending: false });
 
     if (appsError) {
@@ -73,7 +85,7 @@ export function SharedWithMe() {
     }
 
     const inviterIds = memberships
-      .map((m: any) => m.invited_by)
+      .map((m) => m.invited_by)
       .filter(Boolean);
 
     let invitersMap: Record<string, any> = {};
@@ -90,17 +102,22 @@ export function SharedWithMe() {
       }
     }
 
+    const workspacesMap = Object.fromEntries(
+      workspaces.map((w) => [w.id, w])
+    );
+
     const shared: SharedApp[] = (apps || []).map((app) => {
       const membership = memberships.find(
-        (m: any) => m.workspace_id === app.workspace_id
+        (m) => m.workspace_id === app.workspace_id
       );
+      const workspace = workspacesMap[app.workspace_id];
       const inviter = membership?.invited_by
         ? invitersMap[membership.invited_by]
         : null;
 
       return {
         app,
-        workspace: (membership as any).workspaces,
+        workspace,
         membershipInfo: {
           role: membership?.role || 'commenter',
           joined_at: membership?.joined_at || app.created_at,
