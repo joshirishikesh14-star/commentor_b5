@@ -60,8 +60,6 @@ export function AppDetails() {
   const [replyText, setReplyText] = useState('');
   const [showCommentOverlay, setShowCommentOverlay] = useState(false);
   const [showInviteModal, setShowInviteModal] = useState(false);
-  const [inviteEmail, setInviteEmail] = useState('');
-  const [inviteSending, setInviteSending] = useState(false);
   const [isCommentsSidebarCollapsed, setIsCommentsSidebarCollapsed] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deletingThread, setDeletingThread] = useState<ThreadWithComments | null>(null);
@@ -222,47 +220,9 @@ export function AppDetails() {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const handleInviteTester = async () => {
-    if (!inviteEmail.trim() || !id || !user) return;
-
-    setInviteSending(true);
-    try {
-      const email = inviteEmail.toLowerCase().trim();
-
-      const { data: inviteeProfile } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('email', email)
-        .maybeSingle();
-
-      if (!inviteeProfile) {
-        alert('User not found. They need to sign up first.');
-        setInviteSending(false);
-        return;
-      }
-
-      const { error } = await supabase.from('app_collaborators').insert({
-        app_id: id,
-        user_id: inviteeProfile.id,
-        access_level: 'commenter',
-        invited_by: user.id,
-      });
-
-      if (error) {
-        console.error('Invitation error:', error);
-        alert('Failed to send invitation. Please try again.');
-        return;
-      }
-
-      alert(`${email} added as a collaborator`);
-      setInviteEmail('');
-      setShowInviteModal(false);
-    } catch (error) {
-      console.error('Error sending invitation:', error);
-      alert('An error occurred. Please try again.');
-    } finally {
-      setInviteSending(false);
-    }
+  const handleInviteTester = () => {
+    setShowInviteModal(false);
+    navigate('/dashboard/workspace');
   };
 
   const handleThreadClick = (thread: ThreadWithComments) => {
@@ -555,29 +515,24 @@ export function AppDetails() {
             </div>
 
             <div className="p-6 space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">
-                  Tester Email Address
-                </label>
-                <input
-                  type="email"
-                  value={inviteEmail}
-                  onChange={(e) => setInviteEmail(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && !inviteSending) {
-                      handleInviteTester();
-                    }
-                  }}
-                  placeholder="tester@example.com"
-                  autoFocus
-                  className="w-full px-4 py-3 bg-slate-700 text-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 transition"
-                />
+              <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4">
+                <h4 className="text-sm font-semibold text-blue-300 mb-2">Workspace-Based Access</h4>
+                <p className="text-xs text-slate-300 leading-relaxed mb-3">
+                  Invitations are managed at the workspace level. When you invite someone to your workspace, they automatically get access to all apps in that workspace.
+                </p>
+                <p className="text-xs text-slate-400 leading-relaxed">
+                  This makes it easier to manage team access across multiple apps.
+                </p>
               </div>
 
               <div className="bg-slate-700/50 rounded-lg p-4">
-                <p className="text-xs text-slate-400 leading-relaxed">
-                  The tester will receive an invitation and can access the review page. They'll need to log in to start testing.
-                </p>
+                <h4 className="text-sm font-medium text-slate-300 mb-2">How to Invite Testers:</h4>
+                <ol className="text-xs text-slate-400 space-y-1.5 list-decimal list-inside">
+                  <li>Go to Workspace Management</li>
+                  <li>Find your workspace</li>
+                  <li>Click "Invite Member"</li>
+                  <li>Enter their email and choose their role</li>
+                </ol>
               </div>
             </div>
 
@@ -590,11 +545,10 @@ export function AppDetails() {
               </button>
               <button
                 onClick={handleInviteTester}
-                disabled={!inviteEmail.trim() || inviteSending}
-                className="flex-1 px-4 py-3 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl transition flex items-center justify-center gap-2"
+                className="flex-1 px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition flex items-center justify-center gap-2"
               >
                 <Mail className="w-4 h-4" />
-                <span className="font-medium">{inviteSending ? 'Sending...' : 'Send Invitation'}</span>
+                <span className="font-medium">Go to Workspace Settings</span>
               </button>
             </div>
           </div>
