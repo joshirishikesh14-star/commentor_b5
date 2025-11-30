@@ -181,33 +181,58 @@ export function Workspace() {
   const handleInviteMember = async (workspaceId: string) => {
     if (!inviteForm || !inviteForm.email.trim()) return;
 
-    const { data: invitedProfile } = await supabase
-      .from('profiles')
-      .select('id')
-      .eq('email', inviteForm.email.toLowerCase())
-      .maybeSingle();
+    try {
+      const { data: invitedProfile, error: profileError } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('email', inviteForm.email.toLowerCase())
+        .maybeSingle();
 
-    if (!invitedProfile) {
-      alert('User not found. They need to sign up first.');
-      return;
+      if (profileError) {
+        console.error('Profile lookup error:', profileError);
+        alert('Error looking up user: ' + profileError.message);
+        return;
+      }
+
+      if (!invitedProfile) {
+        alert('User not found. They need to sign up first.');
+        return;
+      }
+
+      const { data: existingMember } = await supabase
+        .from('workspace_members')
+        .select('id')
+        .eq('workspace_id', workspaceId)
+        .eq('user_id', invitedProfile.id)
+        .maybeSingle();
+
+      if (existingMember) {
+        alert('This user is already a member of this workspace.');
+        return;
+      }
+
+      const { error } = await supabase
+        .from('workspace_members')
+        .insert({
+          workspace_id: workspaceId,
+          user_id: invitedProfile.id,
+          role: inviteForm.role,
+          invited_by: user?.id,
+        });
+
+      if (error) {
+        console.error('Invitation error:', error);
+        alert('Failed to invite member: ' + error.message);
+        return;
+      }
+
+      alert('Member invited successfully!');
+      setInviteForm(null);
+      await fetchAllWorkspacesWithMembers();
+    } catch (error) {
+      console.error('Unexpected error inviting member:', error);
+      alert('An unexpected error occurred. Please try again.');
     }
-
-    const { error } = await supabase
-      .from('workspace_members')
-      .insert({
-        workspace_id: workspaceId,
-        user_id: invitedProfile.id,
-        role: inviteForm.role,
-        invited_by: user?.id,
-      });
-
-    if (error) {
-      alert(error.message || 'Failed to invite member');
-      return;
-    }
-
-    setInviteForm(null);
-    await fetchAllWorkspacesWithMembers();
   };
 
   const handleUpdateMemberRole = async (memberId: string, newRole: string) => {
