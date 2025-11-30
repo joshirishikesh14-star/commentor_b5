@@ -77,22 +77,22 @@ export function Apps() {
 
           const { data: comments } = await commentsQuery;
 
-          let collaboratorsQuery = supabase
-            .from('app_collaborators')
-            .select('id, user_id, invited_at')
-            .eq('app_id', app.id);
+          let membersQuery = supabase
+            .from('workspace_members')
+            .select('id, user_id, joined_at')
+            .eq('workspace_id', app.workspace_id);
 
           if (dateFilterValue) {
-            collaboratorsQuery = collaboratorsQuery.gte('invited_at', dateFilterValue);
+            membersQuery = membersQuery.gte('joined_at', dateFilterValue);
           }
 
-          const { data: collaborators } = await collaboratorsQuery;
+          const { data: workspaceMembers } = await membersQuery;
 
           const totalThreads = threads?.length || 0;
           const unresolvedThreads = threads?.filter(t => t.status === 'open').length || 0;
           const resolvedThreads = threads?.filter(t => t.status === 'resolved').length || 0;
-          const totalInvited = collaborators?.length || 0;
-          const totalTesters = collaborators?.length || 0;
+          const totalInvited = workspaceMembers?.length || 0;
+          const totalTesters = workspaceMembers?.length || 0;
           const totalComments = comments?.length || 0;
 
           return {
