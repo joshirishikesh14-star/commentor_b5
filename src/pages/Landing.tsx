@@ -497,10 +497,9 @@ export function Landing() {
               <span className="text-xl font-bold text-white">Echo</span>
             </div>
             <div className="flex gap-8">
-              <a href="#" className="hover:text-white transition-colors">Privacy</a>
-              <a href="#" className="hover:text-white transition-colors">Terms</a>
-              <a href="#" className="hover:text-white transition-colors">Contact</a>
-              <a href="#" className="hover:text-white transition-colors">Blog</a>
+              <Link to="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link>
+              <Link to="/terms" className="hover:text-white transition-colors">Terms of Service</Link>
+              <a href="mailto:support@echo-feedback.com" className="hover:text-white transition-colors">Contact</a>
             </div>
           </div>
           <div className="mt-8 pt-8 border-t border-slate-800 text-center text-sm">

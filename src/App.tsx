@@ -16,6 +16,8 @@ import { PublicReview } from './pages/PublicReview';
 import { SharedWithMe } from './pages/SharedWithMe';
 import { Workspace } from './pages/Workspace';
 import { AcceptInvitation } from './pages/AcceptInvitation';
+import { PrivacyPolicy } from './pages/PrivacyPolicy';
+import { TermsOfService } from './pages/TermsOfService';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -105,6 +107,8 @@ function App() {
             />
             <Route path="/review/:appId" element={<PublicReview />} />
             <Route path="/accept-invitation" element={<AcceptInvitation />} />
+            <Route path="/privacy" element={<PrivacyPolicy />} />
+            <Route path="/terms" element={<TermsOfService />} />
             <Route
               path="/dashboard"
               element={
