@@ -40,7 +40,10 @@ export function Signup() {
     setError('');
     setOauthLoading(provider);
 
-    const redirectTo = searchParams.get('redirect') || `${window.location.origin}/onboarding`;
+    const appUrl = import.meta.env.VITE_APP_URL || window.location.origin;
+    const redirectTo = searchParams.get('redirect')
+      ? `${appUrl}${new URL(searchParams.get('redirect')!, window.location.origin).pathname}${new URL(searchParams.get('redirect')!, window.location.origin).search}`
+      : `${appUrl}/onboarding`;
 
     const { error } = await supabase.auth.signInWithOAuth({
       provider,
