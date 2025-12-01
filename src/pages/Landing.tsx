@@ -499,7 +499,7 @@ export function Landing() {
             <div className="flex gap-8">
               <Link to="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link>
               <Link to="/terms" className="hover:text-white transition-colors">Terms of Service</Link>
-              <a href="mailto:support@echo-feedback.com" className="hover:text-white transition-colors">Contact</a>
+              <a href="mailto:info@analyzthis.ai" className="hover:text-white transition-colors">Contact</a>
             </div>
           </div>
           <div className="mt-8 pt-8 border-t border-slate-800 text-center text-sm">
