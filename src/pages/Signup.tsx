@@ -209,7 +209,7 @@ export function Signup() {
           <div className="flex gap-6 justify-center text-sm text-slate-600">
             <Link to="/privacy" className="hover:text-slate-900 transition-colors">Privacy Policy</Link>
             <Link to="/terms" className="hover:text-slate-900 transition-colors">Terms of Service</Link>
-            <a href="mailto:support@echo-feedback.com" className="hover:text-slate-900 transition-colors">Contact</a>
+            <a href="mailto:info@analyzthis.ai" className="hover:text-slate-900 transition-colors">Contact</a>
           </div>
         </div>
       </div>
