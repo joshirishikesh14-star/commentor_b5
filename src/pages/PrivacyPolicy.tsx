@@ -204,8 +204,8 @@ export function PrivacyPolicy() {
               </p>
               <div className="bg-slate-50 rounded-lg p-4 border border-slate-200">
                 <p className="text-slate-700">
-                  <strong>Email:</strong> privacy@echo-feedback.com<br />
-                  <strong>Support:</strong> support@echo-feedback.com
+                  <strong>Email:</strong> info@analyzthis.ai<br />
+                  <strong>Support:</strong> info@analyzthis.ai
                 </p>
               </div>
             </section>
