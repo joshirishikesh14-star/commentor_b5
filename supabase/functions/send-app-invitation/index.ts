@@ -33,7 +33,7 @@ Deno.serve(async (req: Request) => {
 
     const { data: invitation, error: invError } = await supabase
       .from('app_invitations')
-      .select('*, app:apps(id, name, base_url)')
+      .select('*, apps!inner(id, name, base_url)')
       .eq('id', invitationId)
       .single();
 
@@ -41,7 +41,7 @@ Deno.serve(async (req: Request) => {
       throw new Error('Invitation not found');
     }
 
-    const acceptUrl = `${Deno.env.get('SUPABASE_URL')?.replace('.supabase.co', '')}.supabase.co/auth/v1/verify?token=${invitationId}&type=invite&redirect_to=${encodeURIComponent(window.location.origin)}/review/${invitation.app.id}`;
+    const acceptUrl = `${req.headers.get('origin') || 'http://localhost:5173'}/accept-invitation?token=${invitation.invitation_token}`;
 
     const emailHtml = `
       <!DOCTYPE html>
@@ -68,7 +68,7 @@ Deno.serve(async (req: Request) => {
 
               <div class="app-info">
                 <h2 style="margin: 0 0 10px 0; color: #667eea; font-size: 20px;">${appName}</h2>
-                <p style="margin: 0; color: #666; font-size: 14px;">${invitation.app.base_url}</p>
+                <p style="margin: 0; color: #666; font-size: 14px;">${invitation.apps.base_url}</p>
               </div>
 
               <p style="font-size: 16px;">You've been invited to test and provide feedback on this application. Click the button below to accept the invitation and start reviewing:</p>
@@ -96,19 +96,30 @@ Deno.serve(async (req: Request) => {
       </html>
     `;
 
-    const { data, error } = await supabase.auth.admin.inviteUserByEmail(inviteeEmail, {
-      data: {
-        invitation_id: invitationId,
-        app_id: invitation.app.id,
-        app_name: appName,
-        inviter_name: inviterName,
-      },
-      redirectTo: `${window.location.origin}/review/${invitation.app.id}`,
-    });
+    const emailResult = await fetch(
+      `${Deno.env.get('SUPABASE_URL')}/auth/v1/invite`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`,
+          'apikey': Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+        },
+        body: JSON.stringify({
+          email: inviteeEmail,
+          data: {
+            invitation_id: invitationId,
+            app_id: invitation.apps.id,
+            app_name: appName,
+            inviter_name: inviterName,
+          },
+        }),
+      }
+    );
 
-    if (error) {
-      console.error('Supabase invite error:', error);
-      throw new Error('Failed to send invitation email');
+    if (!emailResult.ok) {
+      const errorData = await emailResult.text();
+      console.error('Email send error:', errorData);
     }
 
     return new Response(
