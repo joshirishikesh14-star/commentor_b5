@@ -93,18 +93,25 @@ export function PublicReview() {
   }, [commentMode, showCommentOverlay]);
 
   useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const token = urlParams.get('token');
+
+    if (token) {
+      return;
+    }
+
     if (!authLoading && !user) {
       navigate('/login');
     }
   }, [authLoading, user, navigate]);
 
   useEffect(() => {
-    if (appId && user && !authLoading) {
-      fetchAppDetails();
+    if (appId && !authLoading) {
+      checkAccessAndFetchData();
       const interval = setInterval(fetchThreads, 5000);
       return () => clearInterval(interval);
     }
-  }, [appId, user, authLoading]);
+  }, [appId, authLoading]);
 
   useEffect(() => {
     if (app) {
@@ -164,8 +171,48 @@ export function PublicReview() {
     }
   }, [threads]);
 
-  const fetchAppDetails = async () => {
-    if (!appId || !user) return;
+  const checkAccessAndFetchData = async () => {
+    if (!appId) return;
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const token = urlParams.get('token');
+
+    if (token) {
+      const { data: tokenData, error: tokenError } = await supabase
+        .from('app_access_tokens')
+        .select('*')
+        .eq('token', token)
+        .eq('app_id', appId)
+        .eq('is_active', true)
+        .maybeSingle();
+
+      if (tokenError || !tokenData) {
+        setAccessDenied(true);
+        setLoading(false);
+        return;
+      }
+
+      if (tokenData.expires_at && new Date(tokenData.expires_at) < new Date()) {
+        setAccessDenied(true);
+        setLoading(false);
+        return;
+      }
+    } else if (!user) {
+      setAccessDenied(true);
+      setLoading(false);
+      return;
+    } else {
+      const hasAccess = await supabase.rpc('has_app_access', {
+        app_id_param: appId,
+        user_id_param: user.id,
+      });
+
+      if (!hasAccess.data) {
+        setAccessDenied(true);
+        setLoading(false);
+        return;
+      }
+    }
 
     const { data: appData, error } = await supabase
       .from('apps')

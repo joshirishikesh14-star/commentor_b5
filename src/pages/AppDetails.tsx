@@ -73,6 +73,12 @@ export function AppDetails() {
   const [editingComment, setEditingComment] = useState<string | null>(null);
   const [editText, setEditText] = useState('');
   const [commentMenuOpen, setCommentMenuOpen] = useState<string | null>(null);
+  const [inviteEmail, setInviteEmail] = useState('');
+  const [inviteRole, setInviteRole] = useState<'viewer' | 'commenter' | 'moderator'>('commenter');
+  const [sendingInvite, setSendingInvite] = useState(false);
+  const [shareToken, setShareToken] = useState<string | null>(null);
+  const [loadingShareToken, setLoadingShareToken] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -220,9 +226,95 @@ export function AppDetails() {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const handleInviteTester = () => {
-    setShowInviteModal(false);
-    navigate('/dashboard/workspace');
+  const handleInviteTester = async () => {
+    if (!inviteEmail || !user || !app) return;
+
+    setSendingInvite(true);
+    try {
+      const { data, error } = await supabase
+        .from('app_invitations')
+        .insert({
+          app_id: app.id,
+          inviter_id: user.id,
+          invitee_email: inviteEmail.toLowerCase().trim(),
+          status: 'pending',
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      await supabase.functions.invoke('send-app-invitation', {
+        body: {
+          invitationId: data.id,
+          inviteeEmail: inviteEmail,
+          appName: app.name,
+          inviterName: user.user_metadata?.full_name || user.email,
+        },
+      });
+
+      alert('Invitation sent successfully!');
+      setShowInviteModal(false);
+      setInviteEmail('');
+      setInviteRole('commenter');
+    } catch (error) {
+      console.error('Error sending invitation:', error);
+      alert('Failed to send invitation. Please try again.');
+    } finally {
+      setSendingInvite(false);
+    }
+  };
+
+  const generateShareToken = async () => {
+    if (!app || !user) return;
+
+    setLoadingShareToken(true);
+    try {
+      const { data, error } = await supabase
+        .from('app_access_tokens')
+        .select('token')
+        .eq('app_id', app.id)
+        .eq('is_active', true)
+        .maybeSingle();
+
+      if (data) {
+        setShareToken(data.token);
+      } else {
+        const { data: newToken, error: createError } = await supabase
+          .from('app_access_tokens')
+          .insert({
+            app_id: app.id,
+            created_by: user.id,
+            access_level: 'reviewer',
+            is_active: true,
+          })
+          .select('token')
+          .single();
+
+        if (createError) throw createError;
+        setShareToken(newToken.token);
+      }
+    } catch (error) {
+      console.error('Error generating share token:', error);
+      alert('Failed to generate share link. Please try again.');
+    } finally {
+      setLoadingShareToken(false);
+    }
+  };
+
+  const copyShareToken = () => {
+    if (!shareToken) return;
+    const shareUrl = `${window.location.origin}/review/${app?.id}?token=${shareToken}`;
+    navigator.clipboard.writeText(shareUrl);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleShowShareModal = () => {
+    setShowShareModal(true);
+    if (!shareToken) {
+      generateShareToken();
+    }
   };
 
   const handleThreadClick = (thread: ThreadWithComments) => {
@@ -475,20 +567,11 @@ export function AppDetails() {
           </button>
 
           <button
-            onClick={copyShareUrl}
+            onClick={handleShowShareModal}
             className="flex items-center gap-2 px-3 py-1.5 bg-blue-500/30 backdrop-blur-md text-blue-100 rounded-lg hover:bg-blue-500/40 transition text-sm border border-blue-400/30"
           >
-            {copied ? (
-              <>
-                <Check className="w-4 h-4" />
-                <span>Copied!</span>
-              </>
-            ) : (
-              <>
-                <Share2 className="w-4 h-4" />
-                <span>Share URL</span>
-              </>
-            )}
+            <Share2 className="w-4 h-4" />
+            <span>Share URL</span>
           </button>
         </div>
       </header>
@@ -515,40 +598,170 @@ export function AppDetails() {
             </div>
 
             <div className="p-6 space-y-4">
-              <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4">
-                <h4 className="text-sm font-semibold text-blue-300 mb-2">Workspace-Based Access</h4>
-                <p className="text-xs text-slate-300 leading-relaxed mb-3">
-                  Invitations are managed at the workspace level. When you invite someone to your workspace, they automatically get access to all apps in that workspace.
-                </p>
-                <p className="text-xs text-slate-400 leading-relaxed">
-                  This makes it easier to manage team access across multiple apps.
-                </p>
+              <div>
+                <label className="block text-sm font-medium text-slate-300 mb-2">
+                  Email Address
+                </label>
+                <input
+                  type="email"
+                  value={inviteEmail}
+                  onChange={(e) => setInviteEmail(e.target.value)}
+                  placeholder="tester@example.com"
+                  className="w-full px-4 py-2.5 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
               </div>
 
-              <div className="bg-slate-700/50 rounded-lg p-4">
-                <h4 className="text-sm font-medium text-slate-300 mb-2">How to Invite Testers:</h4>
-                <ol className="text-xs text-slate-400 space-y-1.5 list-decimal list-inside">
-                  <li>Go to Workspace Management</li>
-                  <li>Find your workspace</li>
-                  <li>Click "Invite Member"</li>
-                  <li>Enter their email and choose their role</li>
-                </ol>
+              <div>
+                <label className="block text-sm font-medium text-slate-300 mb-2">
+                  Access Level
+                </label>
+                <select
+                  value={inviteRole}
+                  onChange={(e) => setInviteRole(e.target.value as any)}
+                  className="w-full px-4 py-2.5 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option value="viewer">Viewer - Can only view comments</option>
+                  <option value="commenter">Commenter - Can add comments</option>
+                  <option value="moderator">Moderator - Can manage comments</option>
+                </select>
+              </div>
+
+              <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-3">
+                <p className="text-xs text-slate-300 leading-relaxed">
+                  The recipient will receive an email invitation to review this app. They can accept or decline the invitation.
+                </p>
               </div>
             </div>
 
             <div className="flex gap-3 p-6 border-t border-slate-700">
               <button
                 onClick={() => setShowInviteModal(false)}
-                className="flex-1 px-4 py-3 bg-slate-700 hover:bg-slate-600 text-white rounded-xl transition"
+                disabled={sendingInvite}
+                className="flex-1 px-4 py-3 bg-slate-700 hover:bg-slate-600 text-white rounded-xl transition disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Cancel
               </button>
               <button
                 onClick={handleInviteTester}
-                className="flex-1 px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition flex items-center justify-center gap-2"
+                disabled={!inviteEmail || sendingInvite}
+                className="flex-1 px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <Mail className="w-4 h-4" />
-                <span className="font-medium">Go to Workspace Settings</span>
+                {sendingInvite ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    <span>Sending...</span>
+                  </>
+                ) : (
+                  <>
+                    <Mail className="w-4 h-4" />
+                    <span className="font-medium">Send Invitation</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showShareModal && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-slate-800 rounded-2xl shadow-2xl w-full max-w-md">
+            <div className="flex items-center justify-between p-6 border-b border-slate-700">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-blue-600/20 rounded-lg flex items-center justify-center">
+                  <Share2 className="w-5 h-5 text-blue-500" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-white">Share Review Link</h3>
+                  <p className="text-sm text-slate-400">Public access URL</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowShareModal(false)}
+                className="p-2 hover:bg-slate-700 rounded-lg transition"
+              >
+                <X className="w-5 h-5 text-slate-400" />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-4">
+              {loadingShareToken ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="w-8 h-8 border-2 border-blue-500/30 border-t-blue-500 rounded-full animate-spin" />
+                </div>
+              ) : shareToken ? (
+                <>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-300 mb-2">
+                      Shareable Link
+                    </label>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={`${window.location.origin}/review/${app?.id}?token=${shareToken}`}
+                        readOnly
+                        className="flex-1 px-4 py-2.5 bg-slate-700 border border-slate-600 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                      <button
+                        onClick={copyShareToken}
+                        className="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition flex items-center gap-2"
+                      >
+                        {copied ? (
+                          <>
+                            <Check className="w-4 h-4" />
+                            <span className="text-sm">Copied</span>
+                          </>
+                        ) : (
+                          <>
+                            <Share2 className="w-4 h-4" />
+                            <span className="text-sm">Copy</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4">
+                    <h4 className="text-sm font-semibold text-blue-300 mb-2">How it works</h4>
+                    <ul className="text-xs text-slate-300 space-y-1.5 list-disc list-inside">
+                      <li>Anyone with this link can review your app</li>
+                      <li>Testers can browse and leave feedback</li>
+                      <li>Link remains active until you deactivate it</li>
+                      <li>Perfect for external testers or clients</li>
+                    </ul>
+                  </div>
+
+                  <div className="bg-slate-700/50 rounded-lg p-4">
+                    <div className="flex items-start gap-3">
+                      <ExternalLink className="w-5 h-5 text-slate-400 flex-shrink-0 mt-0.5" />
+                      <div>
+                        <h4 className="text-sm font-medium text-slate-300 mb-1">Public Access</h4>
+                        <p className="text-xs text-slate-400 leading-relaxed">
+                          This link allows public access to review your app. Share it carefully.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <div className="text-center py-8">
+                  <p className="text-slate-400 mb-4">Failed to generate share link</p>
+                  <button
+                    onClick={generateShareToken}
+                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition"
+                  >
+                    Try Again
+                  </button>
+                </div>
+              )}
+            </div>
+
+            <div className="flex gap-3 p-6 border-t border-slate-700">
+              <button
+                onClick={() => setShowShareModal(false)}
+                className="flex-1 px-4 py-3 bg-slate-700 hover:bg-slate-600 text-white rounded-xl transition"
+              >
+                Close
               </button>
             </div>
           </div>
