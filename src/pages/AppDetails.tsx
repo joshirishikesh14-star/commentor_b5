@@ -237,6 +237,7 @@ export function AppDetails() {
           app_id: app.id,
           inviter_id: user.id,
           invitee_email: inviteEmail.toLowerCase().trim(),
+          access_level: inviteRole,
           status: 'pending',
         })
         .select()
@@ -244,7 +245,7 @@ export function AppDetails() {
 
       if (error) throw error;
 
-      await supabase.functions.invoke('send-app-invitation', {
+      const { data: functionData, error: functionError } = await supabase.functions.invoke('send-app-invitation', {
         body: {
           invitationId: data.id,
           inviteeEmail: inviteEmail,
@@ -253,13 +254,22 @@ export function AppDetails() {
         },
       });
 
+      if (functionError) {
+        console.error('Edge function error:', functionError);
+        throw new Error(functionError.message || 'Failed to send email');
+      }
+
+      if (!functionData?.success) {
+        throw new Error(functionData?.error || 'Failed to send invitation email');
+      }
+
       alert('Invitation sent successfully!');
       setShowInviteModal(false);
       setInviteEmail('');
       setInviteRole('commenter');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error sending invitation:', error);
-      alert('Failed to send invitation. Please try again.');
+      alert(`Failed to send invitation: ${error.message || 'Please try again'}`);
     } finally {
       setSendingInvite(false);
     }

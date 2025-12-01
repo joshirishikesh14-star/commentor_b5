@@ -96,30 +96,22 @@ Deno.serve(async (req: Request) => {
       </html>
     `;
 
-    const emailResult = await fetch(
-      `${Deno.env.get('SUPABASE_URL')}/auth/v1/invite`,
+    const { data: authData, error: authError } = await supabase.auth.admin.inviteUserByEmail(
+      inviteeEmail,
       {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`,
-          'apikey': Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+        redirectTo: acceptUrl,
+        data: {
+          invitation_id: invitationId,
+          app_id: invitation.apps.id,
+          app_name: appName,
+          inviter_name: inviterName,
         },
-        body: JSON.stringify({
-          email: inviteeEmail,
-          data: {
-            invitation_id: invitationId,
-            app_id: invitation.apps.id,
-            app_name: appName,
-            inviter_name: inviterName,
-          },
-        }),
       }
     );
 
-    if (!emailResult.ok) {
-      const errorData = await emailResult.text();
-      console.error('Email send error:', errorData);
+    if (authError) {
+      console.error('Supabase auth error:', authError);
+      throw new Error(`Failed to send invitation: ${authError.message}`);
     }
 
     return new Response(
