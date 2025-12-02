@@ -163,7 +163,7 @@ async function fetchUserApps(authData) {
 }
 
 // NEW: Enter review mode - show comments without recording
-function enterReviewMode(app) {
+async function enterReviewMode(app) {
   if (isReviewMode || isEchoActive) {
     console.log('ℹ️ Echo: Already in review/active mode');
     return;
