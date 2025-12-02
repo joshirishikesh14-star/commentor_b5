@@ -13,7 +13,7 @@ export const BRANDING = {
   metaDescription: 'Pin contextual feedback directly on any web application. Collaborate with your team in real-time, track issues, and ship better products.',
 
   logo: {
-  "type": "text",
+  "type": "image",
   "font": {
     "family": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
     "weight": 700,
@@ -22,18 +22,18 @@ export const BRANDING = {
     "textTransform": "none"
   },
   "images": {
-    "main": "/logos/logo.svg",
-    "light": "/logos/logo-light.svg",
-    "dark": "/logos/logo-dark.svg",
-    "icon": "/logos/logo-icon.svg"
+    "main": "/logos/echo.svg",
+    "light": "/logos/echo.svg",
+    "dark": "/logos/echo.svg",
+    "icon": "/favicon.png"
   },
   "extension": {
-    "icon16": "logos/icon16.png",
-    "icon32": "logos/icon32.png",
-    "icon48": "logos/icon48.png",
-    "icon128": "logos/icon128.png"
+    "icon16": "icons/icon16.png",
+    "icon32": "icons/icon32.png",
+    "icon48": "icons/icon48.png",
+    "icon128": "icons/icon128.png"
   },
-  "favicon": "/logos/logo-icon.svg"
+  "favicon": "/favicon.png"
 },
 
   colors: {

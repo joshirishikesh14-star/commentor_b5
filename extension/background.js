@@ -1,4 +1,8 @@
-importScripts('supabase.config.js');
+// Import Supabase config
+const SUPABASE_CONFIG = {
+  url: 'https://evpskuhskpmrbbihdihd.supabase.co',
+  anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV2cHNrdWhza3BtcmJiaWhkaWhkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM2MTk3MTQsImV4cCI6MjA3OTE5NTcxNH0.1TFjxV7csnWm6cZTFIoreeEctFF799fruxGJByyV1kQ'
+};
 
 let activeSession = null;
 
@@ -154,8 +158,7 @@ async function handleSaveComment(commentData, tab) {
     metadata: {
       page_title: tab.title,
       screenshot: commentData.screenshot,
-      htmlSnapshot: commentData.htmlSnapshot,
-      user_agent: navigator.userAgent
+      htmlSnapshot: commentData.htmlSnapshot
     }
   };
 
@@ -176,8 +179,3 @@ async function handleSaveComment(commentData, tab) {
   }
 }
 
-chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-  if (changeInfo.status === 'complete' && activeSession && tabId === activeSession.tabId) {
-    chrome.tabs.sendMessage(tabId, { type: 'SESSION_ACTIVE', session: activeSession });
-  }
-});

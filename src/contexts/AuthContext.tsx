@@ -19,11 +19,40 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    // Handle OAuth hash fragment on page load
+    // Supabase returns tokens in URL hash after OAuth redirect
+    const handleOAuthRedirect = async () => {
+      // Check if we have a hash with access_token (OAuth callback)
+      if (window.location.hash && window.location.hash.includes('access_token')) {
+        console.log('🔐 OAuth callback detected, processing...');
+        
+        // Supabase will automatically parse the hash and set the session
+        // We just need to wait for it to complete
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error('OAuth error:', error);
+        } else if (session) {
+          console.log('✅ OAuth session established');
+          setSession(session);
+          setUser(session.user);
+          
+          // Clean up the URL hash
+          window.history.replaceState(null, '', window.location.pathname);
+        }
+        
+        setLoading(false);
+        return;
+      }
+
+      // Normal session check
+      const { data: { session } } = await supabase.auth.getSession();
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
-    });
+    };
+
+    handleOAuthRedirect();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       (async () => {

@@ -1,8 +1,9 @@
 {
   "manifest_version": 3,
   "name": "Echo",
-  "version": "1.0.0",
+  "version": "3.0.0",
   "description": "Pin contextual feedback directly on any web application. Collaborate in real-time, track issues, and ship better products.",
+  "homepage_url": "https://echo.analyzthis.ai",
   "permissions": [
     "activeTab",
     "storage",
@@ -40,7 +41,7 @@
   ],
   "web_accessible_resources": [
     {
-      "resources": ["widget.html", "icons/*", "supabase.config.js"],
+      "resources": ["icons/*", "supabase.config.js", "logo-icon.svg"],
       "matches": ["<all_urls>"]
     }
   ]

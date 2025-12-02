@@ -231,15 +231,14 @@
 <body>
   <div class="header">
     <div class="header-logo">
-      <svg class="header-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-      </svg>
+      <img src="logo-icon.svg" class="header-icon" alt="Echo Logo" />
       <h1>Echo</h1>
     </div>
     <p>Universal Feedback Platform</p>
   </div>
 
   <div class="content">
+    <!-- Login Section -->
     <div id="login-section" class="login-section">
       <div id="error-message" class="error hidden"></div>
 
@@ -257,7 +256,49 @@
 
       <div class="divider"><span>or</span></div>
 
-      <a href="#" id="open-dashboard" class="link" style="display: block; text-align: center;">Open Echo Dashboard</a>
+      <p style="text-align: center; font-size: 13px; color: #64748b;">
+        Don't have an account? 
+        <a href="#" id="show-signup" class="link">Sign Up</a>
+      </p>
+
+      <div style="margin-top: 12px; text-align: center;">
+        <a href="#" id="open-dashboard" class="link">Open Echo Dashboard</a>
+      </div>
+    </div>
+
+    <!-- Signup Section -->
+    <div id="signup-section" class="login-section hidden">
+      <div id="signup-error-message" class="error hidden"></div>
+      <div id="signup-success-message" class="hidden" style="padding: 12px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; color: #166534; font-size: 13px; margin-bottom: 16px;"></div>
+
+      <div class="form-group">
+        <label for="signup-name">Full Name</label>
+        <input type="text" id="signup-name" placeholder="Your name" />
+      </div>
+
+      <div class="form-group">
+        <label for="signup-email">Email</label>
+        <input type="email" id="signup-email" placeholder="you@example.com" />
+      </div>
+
+      <div class="form-group">
+        <label for="signup-password">Password</label>
+        <input type="password" id="signup-password" placeholder="Create a password (min 6 characters)" />
+      </div>
+
+      <div class="form-group">
+        <label for="signup-confirm-password">Confirm Password</label>
+        <input type="password" id="signup-confirm-password" placeholder="Confirm your password" />
+      </div>
+
+      <button id="signup-btn" class="btn btn-primary">Create Account</button>
+
+      <div class="divider"><span>or</span></div>
+
+      <p style="text-align: center; font-size: 13px; color: #64748b;">
+        Already have an account? 
+        <a href="#" id="show-login" class="link">Sign In</a>
+      </p>
     </div>
 
     <div id="app-section" class="app-section hidden">
@@ -273,6 +314,8 @@
         </select>
       </div>
 
+      <div id="app-info" class="hidden" style="margin: -8px 0 12px 0; padding: 10px 12px; background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 8px; font-size: 12px; line-height: 1.5;"></div>
+
       <div id="domain-warning" class="hidden"></div>
 
       <button id="goto-page-btn" class="btn btn-primary hidden">Go to Page</button>
@@ -280,6 +323,13 @@
       <div id="recording-controls" class="hidden" style="margin-top: 12px;">
         <button id="start-btn" class="btn btn-success">Start Recording</button>
         <button id="stop-btn" class="btn btn-danger hidden">Stop Recording</button>
+        
+        <!-- Privacy Notice -->
+        <div style="margin-top: 12px; padding: 8px; background: #f1f5f9; border-radius: 6px; font-size: 10px; color: #64748b; line-height: 1.4;">
+          🔒 <strong>Privacy:</strong> When you add comments, we capture a screenshot and page snapshot. 
+          Passwords, tokens, and sensitive data are automatically redacted.
+          <a href="https://echo.analyzthis.ai/privacy" target="_blank" style="color: #3b82f6;">Learn more</a>
+        </div>
       </div>
 
       <button id="logout-btn" class="btn btn-secondary">Sign Out</button>

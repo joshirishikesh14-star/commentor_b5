@@ -19,6 +19,8 @@ import {
   RefreshCw,
   Edit,
   Save,
+  Users,
+  Crown,
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
@@ -76,9 +78,26 @@ export function AppDetails() {
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteRole, setInviteRole] = useState<'viewer' | 'commenter' | 'moderator'>('commenter');
   const [sendingInvite, setSendingInvite] = useState(false);
+  const [currentUserAccessLevel, setCurrentUserAccessLevel] = useState<string | null>(null);
   const [shareToken, setShareToken] = useState<string | null>(null);
   const [loadingShareToken, setLoadingShareToken] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
+  const [viewMode, setViewMode] = useState<'screenshot' | 'live' | 'dom'>('screenshot');
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+  const domRendererRef = useRef<HTMLIFrameElement>(null);
+  const [iframeFailed, setIframeFailed] = useState(false);
+  const [htmlSnapshotForPage, setHtmlSnapshotForPage] = useState<any>(null);
+  const [showMembersModal, setShowMembersModal] = useState(false);
+  const [appCollaborators, setAppCollaborators] = useState<{
+    id: string;
+    user_id: string;
+    access_level: string;
+    invited_by: string | null;
+    invited_at: string;
+    profile: { full_name: string | null; email: string };
+    inviter: { full_name: string | null; email: string } | null;
+  }[]>([]);
+  const [loadingCollaborators, setLoadingCollaborators] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -140,26 +159,116 @@ export function AppDetails() {
       const pageThreads = threads.filter(t => t.page_url === selectedPageUrl);
       updateCommentPins(pageThreads);
 
+      // Find thread with screenshot
       const threadWithScreenshot = pageThreads.find(t => {
         const firstComment = t.comments[0];
         if (!firstComment?.metadata) return false;
         const metadata = typeof firstComment.metadata === 'string'
           ? JSON.parse(firstComment.metadata)
           : firstComment.metadata;
-        return metadata && 'screenshot' in metadata;
+        return metadata && 'screenshot' in metadata && metadata.screenshot;
       });
 
+      let hasScreenshot = false;
       if (threadWithScreenshot) {
         const firstComment = threadWithScreenshot.comments[0];
         const metadata = typeof firstComment.metadata === 'string'
           ? JSON.parse(firstComment.metadata)
           : firstComment.metadata;
-        setScreenshotForPage(metadata?.screenshot || null);
+        const screenshot = metadata?.screenshot || null;
+        setScreenshotForPage(screenshot);
+        hasScreenshot = !!screenshot;
       } else {
         setScreenshotForPage(null);
       }
+
+      // Find thread with HTML snapshot (for DOM rendering)
+      const threadWithHtmlSnapshot = pageThreads.find(t => {
+        const firstComment = t.comments[0];
+        if (!firstComment?.metadata) return false;
+        const metadata = typeof firstComment.metadata === 'string'
+          ? JSON.parse(firstComment.metadata)
+          : firstComment.metadata;
+        return metadata && 'htmlSnapshot' in metadata && metadata.htmlSnapshot;
+      });
+
+      let hasHtmlSnapshot = false;
+      if (threadWithHtmlSnapshot) {
+        const firstComment = threadWithHtmlSnapshot.comments[0];
+        const metadata = typeof firstComment.metadata === 'string'
+          ? JSON.parse(firstComment.metadata)
+          : firstComment.metadata;
+        const htmlSnapshot = metadata?.htmlSnapshot || null;
+        setHtmlSnapshotForPage(htmlSnapshot);
+        hasHtmlSnapshot = !!htmlSnapshot;
+      } else {
+        setHtmlSnapshotForPage(null);
+      }
+
+      // Reset iframe failed state when page changes
+      setIframeFailed(false);
+
+      // AUTO-SWITCH VIEW MODE: If no screenshot, try alternatives
+      if (!hasScreenshot) {
+        if (hasHtmlSnapshot) {
+          // Prefer DOM view if we have an HTML snapshot
+          setViewMode('dom');
+        } else {
+          // Fall back to live page view
+          setViewMode('live');
+        }
+      } else {
+        // We have a screenshot, use screenshot view
+        setViewMode('screenshot');
+      }
     }
   }, [selectedPageUrl, threads]);
+
+  // Send HTML snapshot to DOM renderer when in DOM mode
+  useEffect(() => {
+    if (viewMode === 'dom' && htmlSnapshotForPage && domRendererRef.current) {
+      const iframe = domRendererRef.current;
+      const sendData = () => {
+        iframe.contentWindow?.postMessage({
+          type: 'RENDER_DOM',
+          htmlSnapshot: htmlSnapshotForPage,
+          pins: commentPins.map(pin => {
+            const thread = threads.find(t => t.id === pin.threadId);
+            return {
+              ...pin,
+              count: thread?.comments.length || 1,
+              resolved: thread?.status === 'resolved'
+            };
+          })
+        }, '*');
+      };
+
+      // Send after iframe loads
+      if (iframe.contentDocument?.readyState === 'complete') {
+        sendData();
+      } else {
+        iframe.addEventListener('load', sendData, { once: true });
+      }
+    }
+  }, [viewMode, htmlSnapshotForPage, commentPins, threads]);
+
+  // Listen for messages from DOM renderer
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      if (event.data.type === 'PIN_CLICKED') {
+        const thread = threads.find(t => t.id === event.data.threadId);
+        if (thread) {
+          handleThreadClick(thread);
+        }
+      }
+      if (event.data.type === 'DOM_RENDER_ERROR') {
+        console.warn('DOM render error:', event.data.error);
+      }
+    };
+
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, [threads]);
 
   const updateCommentPins = (threadsData: ThreadWithComments[]) => {
     const pins: CommentPin[] = threadsData
@@ -182,7 +291,7 @@ export function AppDetails() {
   };
 
   const fetchAppDetails = async () => {
-    if (!id) return;
+    if (!id || !user) return;
 
     const { data: appData } = await supabase
       .from('apps')
@@ -196,6 +305,21 @@ export function AppDetails() {
     }
 
     setApp(appData);
+
+    // Check if user is the app owner
+    if (appData.owner_id === user.id) {
+      setCurrentUserAccessLevel('owner');
+    } else {
+      // Check user's access level from app_collaborators
+      const { data: collaboratorData } = await supabase
+        .from('app_collaborators')
+        .select('access_level')
+        .eq('app_id', id)
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      setCurrentUserAccessLevel(collaboratorData?.access_level || null);
+    }
 
     const { data: threadsData } = await supabase
       .from('threads')
@@ -216,6 +340,84 @@ export function AppDetails() {
     setLoading(false);
   };
 
+  const fetchAppCollaborators = async () => {
+    if (!id) return;
+    
+    setLoadingCollaborators(true);
+    try {
+      const { data, error } = await supabase
+        .from('app_collaborators')
+        .select(`
+          id,
+          user_id,
+          access_level,
+          invited_by,
+          invited_at,
+          profile:profiles!app_collaborators_user_id_fkey(full_name, email),
+          inviter:profiles!app_collaborators_invited_by_fkey(full_name, email)
+        `)
+        .eq('app_id', id)
+        .order('invited_at', { ascending: true });
+
+      if (error) {
+        console.error('Error fetching collaborators:', error);
+      } else {
+        setAppCollaborators(data as any || []);
+      }
+    } catch (err) {
+      console.error('Error:', err);
+    } finally {
+      setLoadingCollaborators(false);
+    }
+  };
+
+  const handleRemoveCollaborator = async (collaboratorId: string, collaboratorUserId: string) => {
+    if (!confirm('Are you sure you want to remove this member from the app?')) return;
+
+    try {
+      const { error } = await supabase
+        .from('app_collaborators')
+        .delete()
+        .eq('id', collaboratorId);
+
+      if (error) throw error;
+
+      setAppCollaborators(prev => prev.filter(c => c.id !== collaboratorId));
+      alert('Member removed successfully');
+    } catch (err: any) {
+      alert('Failed to remove member: ' + err.message);
+    }
+  };
+
+  const handleUpdateCollaboratorRole = async (collaboratorId: string, newRole: string) => {
+    // Validate permission
+    const assignableRoles = getAssignableAppRoles().map(r => r.value);
+    if (!assignableRoles.includes(newRole as any)) {
+      alert(`You don't have permission to assign the ${newRole} role.`);
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('app_collaborators')
+        .update({ access_level: newRole })
+        .eq('id', collaboratorId);
+
+      if (error) throw error;
+
+      setAppCollaborators(prev => 
+        prev.map(c => c.id === collaboratorId ? { ...c, access_level: newRole } : c)
+      );
+    } catch (err: any) {
+      alert('Failed to update role: ' + err.message);
+    }
+  };
+
+  // Check if user can manage (remove/change role) collaborators
+  const canManageCollaborators = (): boolean => {
+    return currentUserAccessLevel === 'owner';
+  };
+
   const shareUrl = app
     ? `${window.location.origin}/review/${app.id}`
     : '';
@@ -226,49 +428,161 @@ export function AppDetails() {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  // Check if user can invite others to this app
+  const canInviteToApp = (): boolean => {
+    if (!currentUserAccessLevel) return false;
+    // Owner can always invite
+    if (currentUserAccessLevel === 'owner') return true;
+    // Moderator and commenter can invite (but with limited roles)
+    return ['moderator', 'commenter'].includes(currentUserAccessLevel);
+  };
+
+  // Get available roles that user can assign based on their own access level
+  const getAssignableAppRoles = (): { value: 'viewer' | 'commenter' | 'moderator'; label: string }[] => {
+    // Owner can assign any role
+    if (currentUserAccessLevel === 'owner') {
+      return [
+        { value: 'viewer', label: 'Viewer - Can only view comments' },
+        { value: 'commenter', label: 'Commenter - Can add comments' },
+        { value: 'moderator', label: 'Moderator - Can manage comments' },
+      ];
+    }
+    // Moderator and Commenter can only assign viewer or commenter
+    if (currentUserAccessLevel === 'moderator' || currentUserAccessLevel === 'commenter') {
+      return [
+        { value: 'viewer', label: 'Viewer - Can only view comments' },
+        { value: 'commenter', label: 'Commenter - Can add comments' },
+      ];
+    }
+    // Viewers cannot invite
+    return [];
+  };
+
   const handleInviteTester = async () => {
-    if (!inviteEmail || !user || !app) return;
+    if (!inviteEmail || !user || !app || !currentWorkspace) return;
+
+    // Validate that user can assign the selected role
+    const assignableRoles = getAssignableAppRoles().map(r => r.value);
+    if (!assignableRoles.includes(inviteRole)) {
+      alert(`You don't have permission to assign the ${inviteRole} role.`);
+      return;
+    }
 
     setSendingInvite(true);
+    const normalizedEmail = inviteEmail.toLowerCase().trim();
+    
     try {
+      console.log('📧 Step 1: Checking if user already exists...');
+      
+      // Check if user exists by email
+      const { data: existingUser } = await supabase
+        .from('profiles')
+        .select('id, email')
+        .eq('email', normalizedEmail)
+        .maybeSingle();
+
+      if (existingUser) {
+        console.log('✅ User exists, adding directly as collaborator and workspace member...');
+        
+        // Add to app_collaborators
+        const { error: collabError } = await supabase
+          .from('app_collaborators')
+          .upsert({
+            app_id: app.id,
+            user_id: existingUser.id,
+            access_level: inviteRole,
+            invited_by: user.id,
+          }, { onConflict: 'app_id,user_id' });
+
+        if (collabError) {
+          console.error('❌ Collaborator insert error:', collabError);
+          throw new Error(`Failed to add collaborator: ${collabError.message}`);
+        }
+
+        // Also add to workspace_members (with viewer role by default for invited users)
+        const workspaceRole = inviteRole === 'moderator' ? 'moderator' : 
+                             inviteRole === 'viewer' ? 'viewer' : 'commenter';
+        
+        const { error: workspaceMemberError } = await supabase
+          .from('workspace_members')
+          .upsert({
+            workspace_id: currentWorkspace.id,
+            user_id: existingUser.id,
+            role: workspaceRole,
+            invited_by: user.id,
+          }, { onConflict: 'workspace_id,user_id' });
+
+        if (workspaceMemberError) {
+          console.warn('⚠️ Could not add to workspace (may already be a member):', workspaceMemberError.message);
+        }
+
+        alert('User added successfully! They can now access this app and workspace.');
+        setShowInviteModal(false);
+        setInviteEmail('');
+        setInviteRole('commenter');
+        return;
+      }
+
+      console.log('📧 User does not exist, creating invitation...');
+      
+      // Step 2: Create invitation record for new user
       const { data, error } = await supabase
         .from('app_invitations')
         .insert({
           app_id: app.id,
           inviter_id: user.id,
-          invitee_email: inviteEmail.toLowerCase().trim(),
+          invitee_email: normalizedEmail,
           access_level: inviteRole,
           status: 'pending',
         })
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Database insert error:', error);
+        throw new Error(`Database error: ${error.message}`);
+      }
 
+      console.log('✅ Invitation created. ID:', data.id);
+      console.log('📧 Step 3: Sending invitation email via Edge Function...');
+
+      // Step 3: Send email via Edge Function
       const { data: functionData, error: functionError } = await supabase.functions.invoke('send-app-invitation', {
         body: {
           invitationId: data.id,
-          inviteeEmail: inviteEmail,
+          inviteeEmail: normalizedEmail,
           appName: app.name,
           inviterName: user.user_metadata?.full_name || user.email,
+          workspaceId: currentWorkspace.id,
+          workspaceName: currentWorkspace.name,
         },
       });
 
       if (functionError) {
-        console.error('Edge function error:', functionError);
-        throw new Error(functionError.message || 'Failed to send email');
+        console.error('❌ Edge function error:', functionError);
+        alert('Invitation created! Note: Email notification may not have been sent (Edge Function not deployed). Share the app link manually.');
+        setShowInviteModal(false);
+        setInviteEmail('');
+        setInviteRole('commenter');
+        return;
       }
 
       if (!functionData?.success) {
-        throw new Error(functionData?.error || 'Failed to send invitation email');
+        console.error('❌ Edge function returned error:', functionData);
+        alert('Invitation created! Note: Email notification may not have been sent. Share the app link manually.');
+        setShowInviteModal(false);
+        setInviteEmail('');
+        setInviteRole('commenter');
+        return;
       }
 
-      alert('Invitation sent successfully!');
+      console.log('✅ Email sent successfully!');
+      alert('Invitation sent successfully! The user will receive an email to sign up and access this app.');
       setShowInviteModal(false);
       setInviteEmail('');
       setInviteRole('commenter');
     } catch (error: any) {
-      console.error('Error sending invitation:', error);
+      console.error('❌ Error sending invitation:', error);
       alert(`Failed to send invitation: ${error.message || 'Please try again'}`);
     } finally {
       setSendingInvite(false);
@@ -569,12 +883,25 @@ export function AppDetails() {
 
         <div className="flex items-center gap-3">
           <button
+            onClick={() => {
+              fetchAppCollaborators();
+              setShowMembersModal(true);
+            }}
+            className="flex items-center gap-2 px-3 py-1.5 bg-white/10 backdrop-blur-md text-slate-200 rounded-lg hover:bg-white/20 transition text-sm border border-white/10"
+          >
+            <Users className="w-4 h-4" />
+            <span>Members{appCollaborators.length > 0 ? ` (${appCollaborators.length + 1})` : ''}</span>
+          </button>
+
+          {canInviteToApp() && (
+          <button
             onClick={() => setShowInviteModal(true)}
             className="flex items-center gap-2 px-3 py-1.5 bg-white/10 backdrop-blur-md text-slate-200 rounded-lg hover:bg-white/20 transition text-sm border border-white/10"
           >
             <UserPlus className="w-4 h-4" />
             <span>Invite</span>
           </button>
+          )}
 
           <button
             onClick={handleShowShareModal}
@@ -608,6 +935,15 @@ export function AppDetails() {
             </div>
 
             <div className="p-6 space-y-4">
+              {/* Show permission info for non-owner users */}
+              {currentUserAccessLevel && currentUserAccessLevel !== 'owner' && (
+                <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-3">
+                  <p className="text-xs text-amber-300 leading-relaxed">
+                    As a {currentUserAccessLevel}, you can only invite members as Viewer or Commenter.
+                  </p>
+                </div>
+              )}
+
               <div>
                 <label className="block text-sm font-medium text-slate-300 mb-2">
                   Email Address
@@ -630,15 +966,15 @@ export function AppDetails() {
                   onChange={(e) => setInviteRole(e.target.value as any)}
                   className="w-full px-4 py-2.5 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
-                  <option value="viewer">Viewer - Can only view comments</option>
-                  <option value="commenter">Commenter - Can add comments</option>
-                  <option value="moderator">Moderator - Can manage comments</option>
+                  {getAssignableAppRoles().map(role => (
+                    <option key={role.value} value={role.value}>{role.label}</option>
+                  ))}
                 </select>
               </div>
 
               <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-3">
                 <p className="text-xs text-slate-300 leading-relaxed">
-                  The recipient will receive an email invitation to review this app. They can accept or decline the invitation.
+                  The recipient will receive an email invitation to review this app. They will also be added to the workspace.
                 </p>
               </div>
             </div>
@@ -668,6 +1004,158 @@ export function AppDetails() {
                   </>
                 )}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Members Modal */}
+      {showMembersModal && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-slate-800 rounded-2xl shadow-2xl w-full max-w-lg max-h-[80vh] flex flex-col">
+            <div className="flex items-center justify-between p-6 border-b border-slate-700">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-blue-600/20 rounded-lg flex items-center justify-center">
+                  <Users className="w-5 h-5 text-blue-500" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-white">App Members</h3>
+                  <p className="text-sm text-slate-400">People who have access to this app</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowMembersModal(false)}
+                className="p-2 hover:bg-slate-700 rounded-lg transition"
+              >
+                <X className="w-5 h-5 text-slate-400" />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-6 space-y-3">
+              {loadingCollaborators ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="w-8 h-8 border-2 border-blue-500/30 border-t-blue-500 rounded-full animate-spin" />
+                </div>
+              ) : (
+                <>
+                  {/* App Owner */}
+                  {app && (
+                    <div className="flex items-center justify-between p-3 bg-slate-700/50 rounded-lg border border-slate-600">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-amber-500/20 rounded-full flex items-center justify-center">
+                          <Crown className="w-5 h-5 text-amber-400" />
+                        </div>
+                        <div>
+                          <p className="font-medium text-white text-sm">
+                            {user?.id === app.owner_id ? 'You (Owner)' : 'App Owner'}
+                          </p>
+                          <p className="text-xs text-slate-400">Full access</p>
+                        </div>
+                      </div>
+                      <span className="px-2.5 py-1 bg-amber-500/20 text-amber-300 text-xs rounded-full font-medium">
+                        Owner
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Collaborators */}
+                  {appCollaborators.length === 0 ? (
+                    <div className="text-center py-6 text-slate-400 text-sm">
+                      No other members yet. Invite someone to collaborate!
+                    </div>
+                  ) : (
+                    appCollaborators.map((collab) => {
+                      const isCurrentUser = collab.user_id === user?.id;
+                      const canManage = canManageCollaborators() && !isCurrentUser;
+
+                      return (
+                        <div
+                          key={collab.id}
+                          className="flex items-center justify-between p-3 bg-slate-700/50 rounded-lg border border-slate-600"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 bg-blue-500/20 rounded-full flex items-center justify-center">
+                              <span className="text-blue-400 font-medium text-sm">
+                                {collab.profile?.full_name?.charAt(0).toUpperCase() || 
+                                 collab.profile?.email?.charAt(0).toUpperCase() || '?'}
+                              </span>
+                            </div>
+                            <div>
+                              <p className="font-medium text-white text-sm">
+                                {collab.profile?.full_name || collab.profile?.email || 'Unknown'}
+                                {isCurrentUser && <span className="text-slate-400 ml-1">(You)</span>}
+                              </p>
+                              <p className="text-xs text-slate-400">
+                                {collab.profile?.email}
+                                {collab.inviter && (
+                                  <span className="ml-2">
+                                    • Invited by {collab.inviter.full_name || collab.inviter.email}
+                                  </span>
+                                )}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            {canManage ? (
+                              <>
+                                <select
+                                  value={collab.access_level}
+                                  onChange={(e) => handleUpdateCollaboratorRole(collab.id, e.target.value)}
+                                  className="px-2 py-1 bg-slate-600 border border-slate-500 rounded text-xs text-white focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                >
+                                  {getAssignableAppRoles().map(role => (
+                                    <option key={role.value} value={role.value}>
+                                      {role.value.charAt(0).toUpperCase() + role.value.slice(1)}
+                                    </option>
+                                  ))}
+                                </select>
+                                <button
+                                  onClick={() => handleRemoveCollaborator(collab.id, collab.user_id)}
+                                  className="p-1.5 text-red-400 hover:bg-red-500/20 rounded transition"
+                                  title="Remove member"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              </>
+                            ) : (
+                              <span className={`px-2.5 py-1 text-xs rounded-full font-medium ${
+                                collab.access_level === 'moderator' 
+                                  ? 'bg-purple-500/20 text-purple-300'
+                                  : collab.access_level === 'commenter'
+                                  ? 'bg-green-500/20 text-green-300'
+                                  : 'bg-slate-500/20 text-slate-300'
+                              }`}>
+                                {collab.access_level.charAt(0).toUpperCase() + collab.access_level.slice(1)}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
+                </>
+              )}
+            </div>
+
+            <div className="p-6 border-t border-slate-700 flex gap-3">
+              <button
+                onClick={() => setShowMembersModal(false)}
+                className="flex-1 px-4 py-2.5 bg-slate-700 hover:bg-slate-600 text-white rounded-xl transition"
+              >
+                Close
+              </button>
+              {canInviteToApp() && (
+                <button
+                  onClick={() => {
+                    setShowMembersModal(false);
+                    setShowInviteModal(true);
+                  }}
+                  className="flex-1 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition flex items-center justify-center gap-2"
+                >
+                  <UserPlus className="w-4 h-4" />
+                  Invite Member
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -782,7 +1270,7 @@ export function AppDetails() {
         <div className="flex-1 bg-slate-900 overflow-hidden flex flex-col">
           {threads.length > 0 && (
             <div className="bg-slate-800/50 border-b border-slate-700 px-4 py-3 flex items-center gap-3 overflow-x-auto">
-              <span className="text-xs text-slate-400 whitespace-nowrap font-medium">Pages with Feedback:</span>
+              <span className="text-xs text-slate-400 whitespace-nowrap font-medium">Pages:</span>
               {Array.from(new Set(threads.map(t => t.page_url))).map((pageUrl) => {
                 const pageThreads = threads.filter(t => t.page_url === pageUrl);
                 const url = new URL(pageUrl);
@@ -815,12 +1303,173 @@ export function AppDetails() {
                   </button>
                 );
               })}
+              
+              {/* View Mode Toggle */}
+              <div className="ml-auto flex items-center gap-2 border-l border-slate-600 pl-4">
+                <span className="text-xs text-slate-400">View:</span>
+                <div className="flex bg-slate-700 rounded-lg p-0.5">
+                  <button
+                    onClick={() => setViewMode('screenshot')}
+                    className={`px-3 py-1.5 rounded-md text-xs font-medium transition ${
+                      viewMode === 'screenshot'
+                        ? 'bg-blue-600 text-white'
+                        : 'text-slate-300 hover:text-white'
+                    }`}
+                    title="View captured screenshot"
+                  >
+                    📸 Screenshot
+                  </button>
+                  <button
+                    onClick={() => setViewMode('live')}
+                    className={`px-3 py-1.5 rounded-md text-xs font-medium transition ${
+                      viewMode === 'live'
+                        ? 'bg-green-600 text-white'
+                        : 'text-slate-300 hover:text-white'
+                    } ${iframeFailed ? 'line-through opacity-50' : ''}`}
+                    title={iframeFailed ? 'Live view blocked by site' : 'View live page (may be blocked by some sites)'}
+                  >
+                    🌐 Live
+                  </button>
+                  {htmlSnapshotForPage && (
+                    <button
+                      onClick={() => setViewMode('dom')}
+                      className={`px-3 py-1.5 rounded-md text-xs font-medium transition ${
+                        viewMode === 'dom'
+                          ? 'bg-purple-600 text-white'
+                          : 'text-slate-300 hover:text-white'
+                      }`}
+                      title="View captured DOM snapshot (works when live view is blocked)"
+                    >
+                      📄 DOM
+                    </button>
+                  )}
+                </div>
+                {(viewMode === 'live' || viewMode === 'dom') && selectedPageUrl && (
+                  <a
+                    href={selectedPageUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="p-1.5 bg-slate-700 hover:bg-slate-600 rounded-md transition"
+                    title="Open in new tab"
+                  >
+                    <ExternalLink className="w-4 h-4 text-slate-300" />
+                  </a>
+                )}
+              </div>
             </div>
           )}
 
           <div className="flex-1 overflow-auto relative bg-slate-900">
             {threads.length > 0 && selectedPageUrl ? (
-              screenshotForPage ? (
+              viewMode === 'dom' && htmlSnapshotForPage ? (
+                /* DOM Snapshot View - Works when live iframe is blocked */
+                <div className="relative w-full h-full">
+                  <iframe
+                    ref={domRendererRef}
+                    src="/dom-renderer.html"
+                    className="w-full h-full border-0"
+                    title="DOM snapshot preview"
+                  />
+                  
+                  {/* Info banner for DOM mode */}
+                  <div className="absolute bottom-4 left-4 right-4 bg-slate-800/90 backdrop-blur-sm rounded-lg p-3 flex items-center gap-3 shadow-lg">
+                    <div className="w-8 h-8 bg-purple-500/20 rounded-full flex items-center justify-center">
+                      <span className="text-purple-400 text-lg">📄</span>
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-white">DOM Snapshot View</p>
+                      <p className="text-xs text-slate-400">Captured HTML snapshot. Interactive elements are disabled. Click pins to view comments.</p>
+                    </div>
+                    <a
+                      href={selectedPageUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white text-xs font-medium rounded-lg transition flex items-center gap-1"
+                    >
+                      <ExternalLink className="w-3 h-3" />
+                      Open Live Page
+                    </a>
+                  </div>
+                </div>
+              ) : viewMode === 'live' ? (
+                /* Live Page View with Iframe */
+                <div className="relative w-full h-full">
+                  <iframe
+                    ref={iframeRef}
+                    src={selectedPageUrl}
+                    className="w-full h-full border-0"
+                    title="Live page preview"
+                    sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+                    onError={() => setIframeFailed(true)}
+                  />
+                  
+                  {/* Comment pins overlay on iframe */}
+                  <div className="absolute inset-0 pointer-events-none">
+                    {commentPins.map((pin) => {
+                      const thread = threads.find(t => t.id === pin.threadId);
+                      if (!thread) return null;
+                      const isSelected = selectedThread?.id === thread.id && showCommentOverlay;
+
+                      return (
+                        <button
+                          key={pin.threadId}
+                          onClick={() => handleThreadClick(thread)}
+                          className={`pointer-events-auto absolute w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-bold shadow-xl transition-all hover:scale-110 border-2 border-white ${
+                            isSelected
+                              ? 'bg-blue-600 scale-110 ring-4 ring-blue-300'
+                              : thread.status === 'resolved'
+                              ? 'bg-green-500 hover:bg-green-600'
+                              : 'bg-red-500 hover:bg-red-600'
+                          }`}
+                          style={{
+                            left: `${pin.x}px`,
+                            top: `${pin.y}px`,
+                            transform: 'translate(-50%, -50%)'
+                          }}
+                          title={`${thread.comments.length} comment${thread.comments.length !== 1 ? 's' : ''} - ${thread.status}`}
+                        >
+                          {thread.comments.length}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* Info banner for live mode */}
+                  <div className="absolute bottom-4 left-4 right-4 bg-slate-800/90 backdrop-blur-sm rounded-lg p-3 flex items-center gap-3 shadow-lg">
+                    <div className="w-8 h-8 bg-green-500/20 rounded-full flex items-center justify-center">
+                      <span className="text-green-400 text-lg">🌐</span>
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-white">Live Page Preview</p>
+                      <p className="text-xs text-slate-400">
+                        {iframeFailed 
+                          ? 'This site blocks iframe embedding. Try DOM Snapshot view instead.'
+                          : 'Comments are pinned to their original positions. Some sites may block iframe embedding.'
+                        }
+                      </p>
+                    </div>
+                    {iframeFailed && htmlSnapshotForPage ? (
+                      <button
+                        onClick={() => setViewMode('dom')}
+                        className="px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white text-xs font-medium rounded-lg transition flex items-center gap-1"
+                      >
+                        📄 Try DOM View
+                      </button>
+                    ) : (
+                      <a
+                        href={selectedPageUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded-lg transition flex items-center gap-1"
+                      >
+                        <ExternalLink className="w-3 h-3" />
+                        Open Full Page
+                      </a>
+                    )}
+                  </div>
+                </div>
+              ) : screenshotForPage ? (
+                /* Screenshot View */
                 <div className="relative inline-block min-w-full">
                   <img
                     src={screenshotForPage}
@@ -857,19 +1506,70 @@ export function AppDetails() {
                   })}
                 </div>
               ) : (
-                <div className="flex items-center justify-center h-full text-slate-400">
-                  <div className="text-center max-w-md px-4">
-                    <div className="w-16 h-16 mx-auto mb-4 bg-slate-800 rounded-full flex items-center justify-center">
-                      <MessageSquare className="w-8 h-8 text-slate-600" />
+                /* No Screenshot - Show Live Page Iframe */
+                <div className="relative w-full h-full">
+                  <iframe
+                    ref={iframeRef}
+                    src={selectedPageUrl}
+                    className="w-full h-full border-0"
+                    title="Live page preview"
+                    sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+                    onError={() => setIframeFailed(true)}
+                  />
+
+                  {/* Overlay comment pins on iframe */}
+                  {commentPins.map((pin) => {
+                    const thread = threads.find(t => t.id === pin.threadId);
+                    if (!thread) return null;
+                    const isSelected = selectedThread?.id === thread.id && showCommentOverlay;
+
+                    return (
+                      <button
+                        key={pin.threadId}
+                        onClick={() => handleThreadClick(thread)}
+                        className={`absolute w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-bold shadow-xl transition-all hover:scale-110 border-2 border-white pointer-events-auto ${
+                          isSelected
+                            ? 'bg-blue-600 scale-110 ring-4 ring-blue-300'
+                            : thread.status === 'resolved'
+                            ? 'bg-green-500 hover:bg-green-600'
+                            : 'bg-red-500 hover:bg-red-600'
+                        }`}
+                        style={{
+                          left: `${pin.x}px`,
+                          top: `${pin.y}px`,
+                          transform: 'translate(-50%, -50%)',
+                          zIndex: 10
+                        }}
+                        title={`${thread.comments.length} comment${thread.comments.length !== 1 ? 's' : ''} - ${thread.status}`}
+                      >
+                        {thread.comments.length}
+                      </button>
+                    );
+                  })}
+
+                  {/* Info banner for fallback live mode */}
+                  <div className="absolute bottom-4 left-4 right-4 bg-amber-900/90 backdrop-blur-sm rounded-lg p-3 flex items-center gap-3 shadow-lg">
+                    <div className="w-8 h-8 bg-amber-500/20 rounded-full flex items-center justify-center">
+                      <span className="text-amber-400 text-lg">⚠️</span>
                     </div>
-                    <p className="text-lg font-medium text-slate-300 mb-2">Screenshot Not Available</p>
-                    <p className="text-sm text-slate-500">
-                      This page has comments but no screenshot was captured. The comments are still available in the sidebar.
-                    </p>
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-amber-200">Older Comment - No Screenshot</p>
+                      <p className="text-xs text-amber-300/80">This comment was made before screenshot capture was enabled. Showing live page instead.</p>
+                    </div>
+                    <a
+                      href={selectedPageUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white text-xs font-medium rounded-lg transition flex items-center gap-1"
+                    >
+                      <ExternalLink className="w-3 h-3" />
+                      Open Page
+                    </a>
                   </div>
                 </div>
               )
             ) : (
+              /* No Feedback Yet */
               <div className="flex items-center justify-center h-full text-slate-400">
                 <div className="text-center max-w-md px-4">
                   <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-blue-500/10 to-blue-600/10 rounded-full flex items-center justify-center">

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
-import { MessageSquare, ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Mail, CheckCircle } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { checkUserWorkspaces } from '../lib/workspaceHelpers';
 import { supabase } from '../lib/supabase';
@@ -11,9 +11,41 @@ export function Login() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [oauthLoading, setOauthLoading] = useState<string | null>(null);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [forgotPasswordEmail, setForgotPasswordEmail] = useState('');
+  const [forgotPasswordLoading, setForgotPasswordLoading] = useState(false);
+  const [forgotPasswordSuccess, setForgotPasswordSuccess] = useState(false);
   const { signIn } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!forgotPasswordEmail.trim()) {
+      setError('Please enter your email address');
+      return;
+    }
+
+    setError('');
+    setForgotPasswordLoading(true);
+
+    try {
+      const appUrl = import.meta.env.VITE_APP_URL || window.location.origin;
+      const { error } = await supabase.auth.resetPasswordForEmail(forgotPasswordEmail.trim(), {
+        redirectTo: `${appUrl}/reset-password`,
+      });
+
+      if (error) {
+        setError(error.message);
+      } else {
+        setForgotPasswordSuccess(true);
+      }
+    } catch (err: any) {
+      setError(err.message || 'An error occurred');
+    } finally {
+      setForgotPasswordLoading(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,15 +67,20 @@ export function Login() {
     setError('');
     setOauthLoading(provider);
 
+    // Use the app origin for OAuth redirect
+    // Supabase will append the access_token as a hash fragment
     const appUrl = import.meta.env.VITE_APP_URL || window.location.origin;
-    const redirectTo = searchParams.get('redirect')
-      ? `${appUrl}${new URL(searchParams.get('redirect')!, window.location.origin).pathname}${new URL(searchParams.get('redirect')!, window.location.origin).search}`
-      : `${appUrl}/dashboard`;
+    
+    // Redirect to root - the AuthContext will handle the OAuth hash and redirect appropriately
+    const redirectTo = `${appUrl}/`;
+
+    console.log('🔐 Starting OAuth with redirect to:', redirectTo);
 
     const { error } = await supabase.auth.signInWithOAuth({
       provider,
       options: {
         redirectTo,
+        skipBrowserRedirect: false,
       },
     });
 
@@ -65,11 +102,8 @@ export function Login() {
         </Link>
         <div className="text-center mb-8">
           <div className="inline-flex items-center gap-2 mb-4">
-            <div className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center">
-              <MessageSquare className="w-7 h-7 text-white" />
-            </div>
+            <img src="/logos/echo.svg" alt="Echo" className="h-12 w-auto" />
           </div>
-          <h1 className="text-3xl font-bold text-slate-900 mb-2">Echo</h1>
           <p className="text-slate-600">Universal Feedback Platform</p>
         </div>
 
@@ -99,9 +133,23 @@ export function Login() {
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-slate-700 mb-1">
+              <div className="flex items-center justify-between mb-1">
+                <label htmlFor="password" className="block text-sm font-medium text-slate-700">
                 Password
               </label>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowForgotPassword(true);
+                    setForgotPasswordEmail(email);
+                    setForgotPasswordSuccess(false);
+                    setError('');
+                  }}
+                  className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+                >
+                  Forgot password?
+                </button>
+              </div>
               <input
                 id="password"
                 type="password"
@@ -192,10 +240,107 @@ export function Login() {
           <div className="flex gap-6 justify-center text-sm text-slate-600">
             <Link to="/privacy" className="hover:text-slate-900 transition-colors">Privacy Policy</Link>
             <Link to="/terms" className="hover:text-slate-900 transition-colors">Terms of Service</Link>
-            <a href="info@analyzthis.ai" className="hover:text-slate-900 transition-colors">Contact</a>
+            <a href="mailto:info@analyzthis.ai" className="hover:text-slate-900 transition-colors">Contact</a>
           </div>
         </div>
       </div>
+
+      {/* Forgot Password Modal */}
+      {showForgotPassword && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
+            <div className="p-6">
+              {forgotPasswordSuccess ? (
+                <div className="text-center py-4">
+                  <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <CheckCircle className="w-8 h-8 text-green-600" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-slate-900 mb-2">Check your email</h3>
+                  <p className="text-slate-600 mb-6">
+                    We've sent a password reset link to <strong>{forgotPasswordEmail}</strong>. 
+                    Please check your inbox and follow the instructions to reset your password.
+                  </p>
+                  <p className="text-sm text-slate-500 mb-6">
+                    Didn't receive the email? Check your spam folder or try again.
+                  </p>
+                  <button
+                    onClick={() => {
+                      setShowForgotPassword(false);
+                      setForgotPasswordSuccess(false);
+                    }}
+                    className="w-full bg-blue-600 text-white py-2.5 rounded-lg font-medium hover:bg-blue-700 transition"
+                  >
+                    Back to Sign In
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+                      <Mail className="w-6 h-6 text-blue-600" />
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-semibold text-slate-900">Reset your password</h3>
+                      <p className="text-sm text-slate-600">We'll send you a link to reset it</p>
+                    </div>
+                  </div>
+
+                  {error && (
+                    <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+                      {error}
+                    </div>
+                  )}
+
+                  <form onSubmit={handleForgotPassword} className="space-y-4">
+                    <div>
+                      <label htmlFor="forgot-email" className="block text-sm font-medium text-slate-700 mb-1">
+                        Email address
+                      </label>
+                      <input
+                        id="forgot-email"
+                        type="email"
+                        value={forgotPasswordEmail}
+                        onChange={(e) => setForgotPasswordEmail(e.target.value)}
+                        required
+                        className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+                        placeholder="you@example.com"
+                        autoFocus
+                      />
+                    </div>
+
+                    <div className="flex gap-3">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowForgotPassword(false);
+                          setError('');
+                        }}
+                        className="flex-1 px-4 py-2.5 border border-slate-300 text-slate-700 rounded-lg font-medium hover:bg-slate-50 transition"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="submit"
+                        disabled={forgotPasswordLoading}
+                        className="flex-1 bg-blue-600 text-white py-2.5 rounded-lg font-medium hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                      >
+                        {forgotPasswordLoading ? (
+                          <>
+                            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                            Sending...
+                          </>
+                        ) : (
+                          'Send Reset Link'
+                        )}
+                      </button>
+                    </div>
+                  </form>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

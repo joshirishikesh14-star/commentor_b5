@@ -68,6 +68,37 @@ export function PrivacyPolicy() {
                 <li>Your name and profile picture</li>
                 <li>Basic profile information from the OAuth provider</li>
               </ul>
+
+              <h3 className="text-xl font-semibold text-slate-800 mb-3 mt-6">Chrome Extension Data Collection</h3>
+              <p className="text-slate-700 leading-relaxed mb-4">
+                When you use our Chrome extension to add feedback comments, we collect:
+              </p>
+              <ul className="list-disc list-inside space-y-2 text-slate-700 mb-4">
+                <li><strong>Screenshots:</strong> A visual capture of the visible portion of the webpage</li>
+                <li><strong>DOM Snapshots:</strong> The HTML structure of the page for context rendering</li>
+                <li><strong>Position Data:</strong> Click coordinates and scroll position for comment placement</li>
+                <li><strong>Page URL:</strong> The URL of the page where feedback was provided</li>
+              </ul>
+
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 my-4">
+                <h4 className="font-semibold text-blue-900 mb-2">🔒 Privacy Safeguards for Page Capture</h4>
+                <p className="text-blue-800 text-sm mb-2">
+                  We automatically redact sensitive information before capturing page data:
+                </p>
+                <ul className="list-disc list-inside space-y-1 text-blue-800 text-sm">
+                  <li>Password fields are never captured</li>
+                  <li>Credit card and payment information is redacted</li>
+                  <li>Authentication tokens and CSRF tokens are removed</li>
+                  <li>Email and phone number fields are sanitized</li>
+                  <li>Elements marked as sensitive/private are excluded</li>
+                </ul>
+              </div>
+
+              <p className="text-slate-700 leading-relaxed mb-4">
+                <strong>Important:</strong> Page captures are only made when you explicitly add a comment, 
+                and only on applications you have been granted access to review. We do not passively 
+                monitor or capture your browsing activity.
+              </p>
             </section>
 
             <section className="mb-8">

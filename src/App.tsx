@@ -18,6 +18,8 @@ import { Workspace } from './pages/Workspace';
 import { AcceptInvitation } from './pages/AcceptInvitation';
 import { PrivacyPolicy } from './pages/PrivacyPolicy';
 import { TermsOfService } from './pages/TermsOfService';
+import { ResetPassword } from './pages/ResetPassword';
+import { AuthConfirm } from './pages/AuthConfirm';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -107,6 +109,8 @@ function App() {
             />
             <Route path="/review/:appId" element={<PublicReview />} />
             <Route path="/accept-invitation" element={<AcceptInvitation />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="/auth/confirm" element={<AuthConfirm />} />
             <Route path="/privacy" element={<PrivacyPolicy />} />
             <Route path="/terms" element={<TermsOfService />} />
             <Route

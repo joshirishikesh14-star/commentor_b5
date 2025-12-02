@@ -2,6 +2,8 @@
 
 **Universal Feedback Platform** - Pin contextual feedback directly on any web application.
 
+**Version:** 2.1.0 | **Last Updated:** November 30, 2025
+
 This Chrome extension allows testers and teams to add contextual feedback on any web application, including apps that use OAuth authentication (Google, GitHub, etc).
 
 ## Features
@@ -13,6 +15,7 @@ This Chrome extension allows testers and teams to add contextual feedback on any
 - ✅ Screenshot capture with scroll position
 - ✅ Real-time sync with Echo dashboard
 - ✅ Visual element highlighting
+- ✅ **Shared apps support** - See apps shared with you via collaborator invites
 
 ### Full Feature Parity with Web App
 - ✅ View all existing comments as pins on page

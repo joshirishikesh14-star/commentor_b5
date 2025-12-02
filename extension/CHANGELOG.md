@@ -1,5 +1,32 @@
 # Chrome Extension Changelog
 
+## Version 2.1 - Shared Apps Support (November 30, 2025)
+
+### 🎉 New Features
+
+**Shared Apps Support**
+- Extension now displays apps shared with you via collaborator invites
+- Previously only showed apps from workspaces you're a member of
+- Now includes apps from `app_collaborators` table
+- Automatically deduplicates if an app appears in both categories
+
+### 🔧 Bug Fixes
+
+**Fixed: Invited users couldn't see shared apps**
+- Issue: When admin invited user to an app from Vercel dashboard, extension didn't show it
+- Root cause: Extension only queried `workspace_members`, not `app_collaborators`
+- Solution: Updated `loadApps()` to fetch from both tables
+- Result: Shared apps now appear in dropdown for invited users
+
+### 📝 Technical Changes
+- Updated `loadApps()` function in `popup.js`
+- Added API call to `app_collaborators` table
+- Merged workspace apps + shared apps
+- Deduplicated by app ID
+- See `SHARED_APPS_FIX.md` for detailed documentation
+
+---
+
 ## Version 2.0 - Feature Parity Release
 
 ### 🔒 Security Improvements

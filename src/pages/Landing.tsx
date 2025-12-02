@@ -16,10 +16,9 @@ export function Landing() {
     <div className="min-h-screen bg-[#FAF9F8]">
       <nav className="fixed top-0 w-full bg-white/95 backdrop-blur-sm border-b border-slate-200 z-50">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <MessageSquare className="w-7 h-7 text-slate-900" />
-            <span className="text-xl font-bold text-slate-900">Echo</span>
-          </div>
+          <Link to="/" className="flex items-center gap-2">
+            <img src="/logos/echo.svg" alt="Echo" className="h-10 w-auto" />
+          </Link>
           <div className="flex items-center gap-6">
             <a href="#features" className="text-slate-600 hover:text-slate-900 text-sm font-medium transition-colors">
               Features
@@ -492,10 +491,9 @@ export function Landing() {
       <footer className="bg-slate-900 text-slate-400 py-12 px-6">
         <div className="max-w-6xl mx-auto">
           <div className="flex flex-col md:flex-row justify-between items-center gap-6">
-            <div className="flex items-center gap-2">
-              <MessageSquare className="w-6 h-6 text-slate-500" />
-              <span className="text-xl font-bold text-white">Echo</span>
-            </div>
+            <Link to="/" className="flex items-center gap-2">
+              <img src="/logos/echo.svg" alt="Echo" className="h-8 w-auto brightness-0 invert" />
+            </Link>
             <div className="flex gap-8">
               <Link to="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link>
               <Link to="/terms" className="hover:text-white transition-colors">Terms of Service</Link>

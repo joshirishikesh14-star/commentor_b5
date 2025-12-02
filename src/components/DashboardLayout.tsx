@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import {
-  MessageSquare,
   LayoutDashboard,
   FolderOpen,
   Settings,
@@ -51,10 +50,7 @@ export function DashboardLayout() {
           <div className="flex justify-between h-16">
             <div className="flex items-center gap-8">
               <Link to="/dashboard" className="flex items-center gap-2">
-                <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                  <MessageSquare className="w-5 h-5 text-white" />
-                </div>
-                <span className="font-semibold text-slate-900">Echo</span>
+                <img src="/logos/echo.svg" alt="Echo" className="h-8 w-auto" />
               </Link>
 
               <div className="hidden md:flex items-center gap-1">

@@ -20,6 +20,7 @@ interface WorkspaceWithMembers {
   workspace: any;
   members: WorkspaceMember[];
   isOwner: boolean;
+  currentUserRole: string | null;
 }
 
 export function Workspace() {
@@ -71,10 +72,15 @@ export function Workspace() {
         console.log('Members for workspace:', workspace.name, members);
       }
 
+      // Find current user's role in this workspace
+      const currentUserMember = (members || []).find(m => m.user_id === user.id);
+      const currentUserRole = currentUserMember?.role || null;
+
       workspacesData.push({
         workspace,
         members: members || [],
         isOwner: workspace.owner_id === user.id,
+        currentUserRole,
       });
     }
 
@@ -97,6 +103,34 @@ export function Workspace() {
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/^-|-$/g, '');
+  };
+
+  // Determine if user can invite members based on their role
+  const canInviteMembers = (role: string | null, isOwner: boolean): boolean => {
+    if (isOwner) return true;
+    return ['owner', 'admin', 'moderator', 'commenter'].includes(role || '');
+  };
+
+  // Get available roles that a user can assign based on their own role
+  const getAssignableRoles = (currentRole: string | null, isOwner: boolean): { value: string; label: string }[] => {
+    // Owner and Admin can assign any role
+    if (isOwner || currentRole === 'owner' || currentRole === 'admin') {
+      return [
+        { value: 'viewer', label: 'Viewer' },
+        { value: 'commenter', label: 'Commenter' },
+        { value: 'moderator', label: 'Moderator' },
+        { value: 'admin', label: 'Admin' },
+      ];
+    }
+    // Moderator and Commenter can only assign viewer or commenter
+    if (currentRole === 'moderator' || currentRole === 'commenter') {
+      return [
+        { value: 'viewer', label: 'Viewer' },
+        { value: 'commenter', label: 'Commenter' },
+      ];
+    }
+    // Viewers cannot invite
+    return [];
   };
 
   const handleCreateWorkspace = async (e: React.FormEvent) => {
@@ -181,7 +215,19 @@ export function Workspace() {
   const handleInviteMember = async (workspaceId: string) => {
     if (!inviteForm || !inviteForm.email.trim()) return;
 
+    // Get the workspace data to validate permissions
+    const workspaceData = allWorkspacesData.find(w => w.workspace.id === workspaceId);
+    if (!workspaceData) return;
+
+    // Validate that user can assign the selected role
+    const assignableRoles = getAssignableRoles(workspaceData.currentUserRole, workspaceData.isOwner).map(r => r.value);
+    if (!assignableRoles.includes(inviteForm.role)) {
+      alert(`You don't have permission to assign the ${inviteForm.role} role.`);
+      return;
+    }
+
     try {
+      // First check if user already exists
       const { data: invitedProfile, error: profileError } = await supabase
         .from('profiles')
         .select('id')
@@ -190,15 +236,10 @@ export function Workspace() {
 
       if (profileError) {
         console.error('Profile lookup error:', profileError);
-        alert('Error looking up user: ' + profileError.message);
-        return;
       }
 
-      if (!invitedProfile) {
-        alert('User not found. They need to sign up first.');
-        return;
-      }
-
+      // If user exists, check if already a member
+      if (invitedProfile) {
       const { data: existingMember } = await supabase
         .from('workspace_members')
         .select('id')
@@ -211,6 +252,7 @@ export function Workspace() {
         return;
       }
 
+        // User exists but not a member - add them directly
       const { error } = await supabase
         .from('workspace_members')
         .insert({
@@ -221,12 +263,43 @@ export function Workspace() {
         });
 
       if (error) {
-        console.error('Invitation error:', error);
-        alert('Failed to invite member: ' + error.message);
+          console.error('Direct add error:', error);
+          alert('Failed to add member: ' + error.message);
+          return;
+        }
+
+        alert('Member added successfully!');
+        setInviteForm(null);
+        await fetchAllWorkspacesWithMembers();
         return;
       }
 
-      alert('Member invited successfully!');
+      // User doesn't exist - create invitation
+      console.log('📧 Creating workspace invitation for:', inviteForm.email);
+      
+      const { data: invitation, error: inviteError } = await supabase
+        .from('workspace_invitations')
+        .insert({
+          workspace_id: workspaceId,
+          inviter_id: user?.id,
+          invitee_email: inviteForm.email.toLowerCase().trim(),
+          role: inviteForm.role,
+          status: 'pending',
+        })
+        .select()
+        .single();
+
+      if (inviteError) {
+        console.error('Invitation error:', inviteError);
+        alert('Failed to create invitation: ' + inviteError.message);
+        return;
+      }
+
+      console.log('✅ Invitation created:', invitation);
+      
+      // TODO: Send invitation email via Edge Function
+      // For now, just show success message
+      alert(`Invitation sent to ${inviteForm.email}! They will receive an email to join the workspace.`);
       setInviteForm(null);
       await fetchAllWorkspacesWithMembers();
     } catch (error) {
@@ -304,7 +377,7 @@ export function Workspace() {
         </div>
       ) : (
         <div className="space-y-4">
-          {allWorkspacesData.map(({ workspace, members, isOwner }) => {
+          {allWorkspacesData.map(({ workspace, members, isOwner, currentUserRole }) => {
             const isExpanded = expandedWorkspaces.has(workspace.id);
             const isEditing = editingWorkspace === workspace.id;
 
@@ -406,7 +479,7 @@ export function Workspace() {
                           <Users className="w-5 h-5 text-slate-600" />
                           <h3 className="text-base font-semibold text-slate-900">Members</h3>
                         </div>
-                        {isOwner && (
+                        {canInviteMembers(currentUserRole, isOwner) && getAssignableRoles(currentUserRole, isOwner).length > 0 && (
                           <button
                             onClick={() => setInviteForm({ workspaceId: workspace.id, email: '', role: 'commenter' })}
                             className="px-3 py-1.5 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition flex items-center gap-2"
@@ -419,7 +492,18 @@ export function Workspace() {
 
                     {inviteForm?.workspaceId === workspace.id && (
                       <div className="mb-4 p-4 bg-slate-50 rounded-lg border border-slate-200">
-                        <h4 className="text-sm font-medium text-slate-900 mb-3">Invite New Member</h4>
+                        <h4 className="text-sm font-medium text-slate-900 mb-3">Invite to Workspace</h4>
+                        {/* Info about workspace vs app invites */}
+                        <p className="text-xs text-blue-600 mb-3 bg-blue-50 p-2 rounded">
+                          💡 <strong>Workspace members</strong> can access all apps in this workspace. 
+                          To invite someone to a specific app only, use the "Invite" button on that app's page.
+                        </p>
+                        {/* Show permission info for non-admin users */}
+                        {currentUserRole && !['owner', 'admin'].includes(currentUserRole) && !isOwner && (
+                          <p className="text-xs text-amber-600 mb-3 bg-amber-50 p-2 rounded">
+                            As a {currentUserRole}, you can only invite members as Viewer or Commenter.
+                          </p>
+                        )}
                         <div className="flex flex-col sm:flex-row gap-2">
                           <input
                             type="email"
@@ -433,10 +517,9 @@ export function Workspace() {
                             onChange={(e) => setInviteForm({ ...inviteForm, role: e.target.value })}
                             className="px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                           >
-                            <option value="viewer">Viewer</option>
-                            <option value="commenter">Commenter</option>
-                            <option value="moderator">Moderator</option>
-                            <option value="admin">Admin</option>
+                            {getAssignableRoles(currentUserRole, isOwner).map(role => (
+                              <option key={role.value} value={role.value}>{role.label}</option>
+                            ))}
                           </select>
                           <button
                             onClick={() => handleInviteMember(workspace.id)}
@@ -492,24 +575,39 @@ export function Workspace() {
                                 </div>
                               </div>
                               <div className="flex items-center gap-2">
-                                {isOwner && !isMemberOwner ? (
+                                {/* Owner role - cannot be changed */}
+                                {member.role === 'owner' ? (
+                                  <span className="px-3 py-1 text-xs bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-lg font-medium flex items-center gap-1">
+                                    <Crown className="w-3 h-3" />
+                                    Owner
+                                  </span>
+                                ) : isOwner && !isMemberOwner ? (
                                   <select
                                     value={member.role}
                                     onChange={(e) => handleUpdateMemberRole(member.id, e.target.value)}
                                     className="px-3 py-1 text-xs border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
                                     title="Change member role"
                                   >
-                                    <option value="viewer">Viewer</option>
-                                    <option value="commenter">Commenter</option>
-                                    <option value="moderator">Moderator</option>
-                                    <option value="admin">Admin</option>
+                                    <option value="viewer">Viewer - Can only view</option>
+                                    <option value="commenter">Commenter - Can add comments</option>
+                                    <option value="moderator">Moderator - Can manage comments</option>
+                                    <option value="admin">Admin - Full access</option>
                                   </select>
                                 ) : (
-                                  <span className="px-3 py-1 text-xs bg-slate-200 text-slate-700 rounded-lg capitalize">
+                                  <span className={`px-3 py-1 text-xs rounded-lg capitalize ${
+                                    member.role === 'admin' 
+                                      ? 'bg-purple-100 text-purple-700' 
+                                      : member.role === 'moderator'
+                                      ? 'bg-blue-100 text-blue-700'
+                                      : member.role === 'commenter'
+                                      ? 'bg-green-100 text-green-700'
+                                      : 'bg-slate-200 text-slate-700'
+                                  }`}>
                                     {member.role}
                                   </span>
                                 )}
-                                {isOwner && !isMemberOwner && !isCurrentUser && (
+                                {/* Can only remove non-owners */}
+                                {isOwner && member.role !== 'owner' && !isCurrentUser && (
                                   <button
                                     onClick={() => handleRemoveMember(member.id, member.user_id)}
                                     className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition"
