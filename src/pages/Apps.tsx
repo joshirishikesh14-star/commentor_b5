@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { FolderOpen, Plus, ExternalLink, Clock, MessageSquare, Users, UserCheck, CheckCircle, Calendar, MoreVertical, Trash2, Settings, Power, PowerOff } from 'lucide-react';
 import { useWorkspace } from '../contexts/WorkspaceContext';
+import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import type { Database } from '../lib/database.types';
 
@@ -18,6 +19,7 @@ interface AppWithStats extends App {
 
 export function Apps() {
   const { currentWorkspace } = useWorkspace();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [apps, setApps] = useState<AppWithStats[]>([]);
   const [loading, setLoading] = useState(true);
@@ -25,6 +27,7 @@ export function Apps() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deletingApp, setDeletingApp] = useState<AppWithStats | null>(null);
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+  const isWorkspaceOwner = currentWorkspace && user && currentWorkspace.created_by === user.id;
 
   useEffect(() => {
     if (currentWorkspace) {
@@ -192,13 +195,19 @@ export function Apps() {
               This Month
             </button>
           </div>
-          <Link
-            to="/dashboard/apps/new"
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
-          >
-            <Plus className="w-4 h-4" />
-            <span>New App</span>
-          </Link>
+          {isWorkspaceOwner ? (
+            <Link
+              to="/dashboard/apps/new"
+              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+            >
+              <Plus className="w-4 h-4" />
+              <span>New App</span>
+            </Link>
+          ) : (
+            <div className="text-sm text-slate-500 italic">
+              Only workspace owners can create apps
+            </div>
+          )}
         </div>
       </div>
 

@@ -23,17 +23,25 @@ export function NewApp() {
     setError('');
 
     try {
+      // Check if user is workspace owner
+      if (currentWorkspace.created_by !== user.id) {
+        setError(`Only the workspace owner can create apps. Please contact ${currentWorkspace.name}'s owner or create your own workspace.`);
+        setLoading(false);
+        return;
+      }
+
       const { data: canCreate, error: checkError } = await supabase
         .rpc('can_user_create_app', { user_id: user.id });
 
       if (checkError) {
-        setError('Failed to check subscription limits');
+        console.error('Subscription check error:', checkError);
+        setError(`Unable to verify your subscription status. Please try again or contact support if the issue persists. Error: ${checkError.message}`);
         setLoading(false);
         return;
       }
 
       if (!canCreate) {
-        setError('You have reached your app limit. Please upgrade to Pro to create more apps.');
+        setError('You have reached your app limit on your current plan. Upgrade to Pro ($10/month) for up to 10 apps, or Enterprise for unlimited apps.');
         setLoading(false);
         return;
       }
@@ -45,8 +53,8 @@ export function NewApp() {
 
       try {
         new URL(normalizedUrl);
-      } catch {
-        setError('Please enter a valid URL');
+      } catch (urlError) {
+        setError(`Invalid URL format. Please enter a valid website URL (e.g., https://example.com or example.com)`);
         setLoading(false);
         return;
       }
@@ -64,14 +72,28 @@ export function NewApp() {
         .single();
 
       if (insertError) {
-        setError(insertError.message);
+        console.error('App creation error:', insertError);
+        let errorMsg = 'Failed to create app. ';
+
+        if (insertError.code === '23505') {
+          errorMsg += 'An app with this name or URL already exists in your workspace.';
+        } else if (insertError.code === '23503') {
+          errorMsg += 'Workspace not found. Please refresh the page and try again.';
+        } else if (insertError.message.includes('permission')) {
+          errorMsg += 'You do not have permission to create apps in this workspace.';
+        } else {
+          errorMsg += insertError.message;
+        }
+
+        setError(errorMsg);
         setLoading(false);
         return;
       }
 
       navigate(`/dashboard/apps/${data.id}`);
     } catch (err) {
-      setError('An unexpected error occurred');
+      console.error('Unexpected error:', err);
+      setError(`An unexpected error occurred. Please try again or contact support if the issue persists. ${err instanceof Error ? err.message : ''}`);
       setLoading(false);
     }
   };
