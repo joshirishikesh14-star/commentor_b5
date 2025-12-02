@@ -333,7 +333,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     console.log('✅ Echo: Session activated', message.session);
 
     const currentDomain = getCurrentDomain();
-    const sessionDomain = message.session.appDomain;
+    const sessionDomain = normalizeDomain(message.session.appDomain);
 
     if (currentDomain && sessionDomain && currentDomain !== sessionDomain) {
       console.error('❌ Echo: Domain mismatch!', {
@@ -345,12 +345,19 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       return true;
     }
 
+    // Exit review mode if active
+    if (isReviewMode) {
+      console.log('🔄 Echo: Exiting review mode to enter recording mode');
+      isReviewMode = false;
+    }
+
     activeSession = message.session;
     isEchoActive = true;
     loadExistingComments();
     showFAB();
     document.body.style.cursor = 'crosshair';
     console.log('✅ Echo: Ready to capture feedback - click any element');
+    console.log('🎯 Echo: Click anywhere on the page to add a comment');
     sendResponse({ success: true });
     return true;
   }
@@ -778,6 +785,7 @@ document.addEventListener('mouseover', (e) => {
 document.addEventListener('click', (e) => {
   console.log('👆 Echo: Click detected', {
     isActive: isEchoActive,
+    isReviewMode: isReviewMode,
     hasWidget: !!commentWidget,
     target: e.target.tagName,
     targetClasses: e.target.className
@@ -785,6 +793,11 @@ document.addEventListener('click', (e) => {
 
   if (!isEchoActive) {
     console.log('⚠️ Echo: Session not active - start recording first');
+    return;
+  }
+
+  if (isReviewMode) {
+    console.log('ℹ️ Echo: In review mode - recording disabled');
     return;
   }
 
@@ -798,6 +811,7 @@ document.addEventListener('click', (e) => {
       target.closest('.echo-pin') ||
       target.closest('.echo-thread-viewer') ||
       target.closest('#echo-fab') ||
+      target.closest('#echo-review-fab') ||
       target.closest('#echo-panel')) {
     console.log('🚫 Echo: Clicked on Echo UI element, ignoring');
     return;
@@ -1502,8 +1516,19 @@ function showNotification(message, type) {
 }
 
 function showFAB() {
-  if (fabButton) return;
+  // Hide review FAB if it exists
+  if (fabButton && fabButton.id === 'echo-review-fab') {
+    console.log('🔄 Echo: Replacing review FAB with recording FAB');
+    fabButton.remove();
+    fabButton = null;
+  }
 
+  if (fabButton) {
+    console.log('📌 Echo: Recording FAB already exists');
+    return;
+  }
+
+  console.log('📌 Echo: Creating recording FAB button');
   fabButton = document.createElement('button');
   fabButton.id = 'echo-fab';
   fabButton.style.cssText = `
@@ -1551,6 +1576,7 @@ function showFAB() {
   });
 
   document.body.appendChild(fabButton);
+  console.log('✅ Echo: Recording FAB button added to DOM');
 }
 
 function hideFAB() {
