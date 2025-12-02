@@ -100,6 +100,15 @@ export function AppDetails() {
     inviter: { full_name: string | null; email: string } | null;
   }[]>([]);
   const [loadingCollaborators, setLoadingCollaborators] = useState(false);
+  const [accessRequests, setAccessRequests] = useState<{
+    id: string;
+    user_id: string;
+    message: string;
+    status: string;
+    requested_at: string;
+    profile: { full_name: string | null; email: string };
+  }[]>([]);
+  const [loadingAccessRequests, setLoadingAccessRequests] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -384,6 +393,72 @@ export function AppDetails() {
       console.error('Error:', err);
     } finally {
       setLoadingCollaborators(false);
+    }
+  };
+
+  const fetchAccessRequests = async () => {
+    if (!id) return;
+
+    setLoadingAccessRequests(true);
+    try {
+      const { data, error} = await supabase
+        .from('app_access_requests')
+        .select(`
+          id,
+          user_id,
+          message,
+          status,
+          requested_at,
+          profile:profiles!app_access_requests_user_id_fkey(full_name, email)
+        `)
+        .eq('app_id', id)
+        .eq('status', 'pending')
+        .order('requested_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching access requests:', error);
+      } else {
+        setAccessRequests(data as any || []);
+      }
+    } catch (err) {
+      console.error('Error:', err);
+    } finally {
+      setLoadingAccessRequests(false);
+    }
+  };
+
+  const handleAccessRequest = async (requestId: string, userId: string, action: 'approve' | 'deny') => {
+    try {
+      const { error } = await supabase
+        .from('app_access_requests')
+        .update({
+          status: action === 'approve' ? 'approved' : 'denied',
+          reviewed_by: user?.id,
+          reviewed_at: new Date().toISOString()
+        })
+        .eq('id', requestId);
+
+      if (error) throw error;
+
+      if (action === 'approve') {
+        const { error: collabError } = await supabase
+          .from('app_collaborators')
+          .insert({
+            app_id: id,
+            user_id: userId,
+            access_level: 'commenter',
+            invited_by: user?.id
+          });
+
+        if (collabError) throw collabError;
+      }
+
+      await fetchAccessRequests();
+      await fetchAppCollaborators();
+      alert(`Access request ${action === 'approve' ? 'approved' : 'denied'} successfully!`);
+    } catch (error) {
+      console.error('Error handling access request:', error);
+      alert('Failed to handle access request');
     }
   };
 
@@ -901,12 +976,18 @@ export function AppDetails() {
           <button
             onClick={() => {
               fetchAppCollaborators();
+              fetchAccessRequests();
               setShowMembersModal(true);
             }}
             className="flex items-center gap-2 px-3 py-1.5 bg-white/10 backdrop-blur-md text-slate-200 rounded-lg hover:bg-white/20 transition text-sm border border-white/10"
           >
             <Users className="w-4 h-4" />
             <span>Members{appCollaborators.length > 0 ? ` (${appCollaborators.length + 1})` : ''}</span>
+            {accessRequests.length > 0 && (
+              <span className="ml-1 px-1.5 py-0.5 bg-red-500 text-white text-xs rounded-full">
+                {accessRequests.length}
+              </span>
+            )}
           </button>
 
           {canInviteToApp() && (
@@ -1148,6 +1229,62 @@ export function AppDetails() {
                         </div>
                       );
                     })
+                  )}
+
+                  {/* Access Requests */}
+                  {canManageCollaborators() && accessRequests.length > 0 && (
+                    <>
+                      <div className="mt-6 pt-6 border-t border-slate-600">
+                        <h4 className="text-sm font-semibold text-white mb-3 flex items-center gap-2">
+                          <Shield className="w-4 h-4 text-amber-400" />
+                          Access Requests ({accessRequests.length})
+                        </h4>
+                        <div className="space-y-3">
+                          {accessRequests.map((request) => (
+                            <div
+                              key={request.id}
+                              className="flex items-center justify-between p-3 bg-amber-500/10 rounded-lg border border-amber-500/30"
+                            >
+                              <div className="flex items-center gap-3 flex-1">
+                                <div className="w-10 h-10 bg-amber-500/20 rounded-full flex items-center justify-center">
+                                  <span className="text-amber-400 font-medium text-sm">
+                                    {request.profile?.full_name?.charAt(0).toUpperCase() ||
+                                     request.profile?.email?.charAt(0).toUpperCase() || '?'}
+                                  </span>
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <p className="font-medium text-white text-sm">
+                                    {request.profile?.full_name || request.profile?.email || 'Unknown'}
+                                  </p>
+                                  <p className="text-xs text-amber-400/80 truncate">
+                                    {request.profile?.email}
+                                  </p>
+                                  <p className="text-xs text-slate-400 mt-1">
+                                    {new Date(request.requested_at).toLocaleDateString()}
+                                  </p>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <button
+                                  onClick={() => handleAccessRequest(request.id, request.user_id, 'approve')}
+                                  className="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-xs rounded transition"
+                                  title="Approve request"
+                                >
+                                  Approve
+                                </button>
+                                <button
+                                  onClick={() => handleAccessRequest(request.id, request.user_id, 'deny')}
+                                  className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white text-xs rounded transition"
+                                  title="Deny request"
+                                >
+                                  Deny
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </>
                   )}
                 </>
               )}

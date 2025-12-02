@@ -51,6 +51,10 @@ export function PublicReview() {
   const [threads, setThreads] = useState<ThreadWithComments[]>([]);
   const [loading, setLoading] = useState(true);
   const [accessDenied, setAccessDenied] = useState(false);
+  const [viewOnlyMode, setViewOnlyMode] = useState(false);
+  const [hasAccess, setHasAccess] = useState(false);
+  const [accessRequestStatus, setAccessRequestStatus] = useState<'none' | 'pending' | 'approved' | 'denied'>('none');
+  const [requestingAccess, setRequestingAccess] = useState(false);
   const [selectedThread, setSelectedThread] = useState<ThreadWithComments | null>(null);
   const [iframeUrl, setIframeUrl] = useState('');
   const [commentPins, setCommentPins] = useState<CommentPin[]>([]);
@@ -177,6 +181,8 @@ export function PublicReview() {
     const urlParams = new URLSearchParams(window.location.search);
     const token = urlParams.get('token');
 
+    let userHasAccess = false;
+
     if (token) {
       const { data: tokenData, error: tokenError } = await supabase
         .from('app_access_tokens')
@@ -197,20 +203,31 @@ export function PublicReview() {
         setLoading(false);
         return;
       }
+
+      userHasAccess = true;
     } else if (!user) {
       setAccessDenied(true);
       setLoading(false);
       return;
     } else {
-      const hasAccess = await supabase.rpc('has_app_access', {
+      const accessCheck = await supabase.rpc('has_app_access', {
         app_id_param: appId,
         user_id_param: user.id,
       });
 
-      if (!hasAccess.data) {
-        setAccessDenied(true);
-        setLoading(false);
-        return;
+      userHasAccess = accessCheck.data || false;
+
+      if (!userHasAccess && user) {
+        const { data: requestData } = await supabase
+          .from('app_access_requests')
+          .select('status')
+          .eq('app_id', appId)
+          .eq('user_id', user.id)
+          .maybeSingle();
+
+        if (requestData) {
+          setAccessRequestStatus(requestData.status as any);
+        }
       }
     }
 
@@ -227,7 +244,13 @@ export function PublicReview() {
     }
 
     setApp(appData);
-    await fetchThreads();
+    setHasAccess(userHasAccess);
+    setViewOnlyMode(!userHasAccess);
+
+    if (userHasAccess) {
+      await fetchThreads();
+    }
+
     setLoading(false);
   };
 
@@ -567,6 +590,37 @@ export function PublicReview() {
     return author.full_name?.[0] || author.email[0].toUpperCase();
   };
 
+  const handleRequestAccess = async () => {
+    if (!user || !appId) return;
+
+    setRequestingAccess(true);
+    try {
+      const { error } = await supabase
+        .from('app_access_requests')
+        .insert({
+          app_id: appId,
+          user_id: user.id,
+          message: 'Requesting access to collaborate on this app'
+        });
+
+      if (error) {
+        if (error.code === '23505') {
+          alert('You have already requested access to this app');
+        } else {
+          throw error;
+        }
+      } else {
+        setAccessRequestStatus('pending');
+        alert('Access request sent successfully! The app owner will review your request.');
+      }
+    } catch (error) {
+      console.error('Error requesting access:', error);
+      alert('Failed to send access request');
+    } finally {
+      setRequestingAccess(false);
+    }
+  };
+
   if (authLoading || loading) {
     return (
       <div className="flex items-center justify-center h-screen bg-slate-900">
@@ -600,9 +654,9 @@ export function PublicReview() {
           <div className="w-20 h-20 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
             <X className="w-10 h-10 text-red-500" />
           </div>
-          <h1 className="text-2xl font-semibold text-white mb-3">Access Denied</h1>
+          <h1 className="text-2xl font-semibold text-white mb-3">Invalid Access</h1>
           <p className="text-slate-400 mb-6 leading-relaxed">
-            You don't have permission to access this app. Please contact the app owner or workspace administrator to be granted access.
+            The share link you're using is invalid or expired. Please request a new link from the app owner.
           </p>
           <button
             onClick={() => navigate('/dashboard')}
@@ -634,12 +688,25 @@ export function PublicReview() {
           <MessageSquare className="w-6 h-6 text-blue-500" />
           <div>
             <h1 className="text-lg font-semibold text-white">{app.name}</h1>
-            <p className="text-xs text-slate-400">Review Mode</p>
+            <p className="text-xs text-slate-400">{viewOnlyMode ? 'View Only Mode' : 'Review Mode'}</p>
           </div>
         </div>
 
         <div className="flex items-center gap-3">
-          {!iframeError && (
+          {viewOnlyMode && (
+            <button
+              onClick={handleRequestAccess}
+              disabled={requestingAccess || accessRequestStatus !== 'none'}
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-600 disabled:cursor-not-allowed text-white rounded-lg transition flex items-center gap-2"
+            >
+              <Shield className="w-4 h-4" />
+              {accessRequestStatus === 'pending' ? 'Access Requested' :
+               accessRequestStatus === 'approved' ? 'Access Approved' :
+               accessRequestStatus === 'denied' ? 'Access Denied' :
+               requestingAccess ? 'Requesting...' : 'Request Access'}
+            </button>
+          )}
+          {!iframeError && !viewOnlyMode && (
             <>
               <span className="text-xs text-slate-400">
                 Press <kbd className="px-2 py-1 bg-slate-700 rounded text-slate-300 font-mono">C</kbd> to comment
@@ -682,6 +749,24 @@ export function PublicReview() {
           )}
         </div>
       </header>
+
+      {viewOnlyMode && (
+        <div className="bg-amber-500/10 border-b border-amber-500/30 px-6 py-3">
+          <div className="flex items-center justify-between max-w-7xl mx-auto">
+            <div className="flex items-center gap-3">
+              <AlertCircle className="w-5 h-5 text-amber-400" />
+              <div>
+                <p className="text-sm text-amber-300 font-medium">
+                  View Only Mode
+                </p>
+                <p className="text-xs text-amber-400/80">
+                  You don't have permission to comment on this app. Request access from the app owner to collaborate.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="flex flex-1 overflow-hidden">
         <div className="flex-1 relative bg-slate-900">
