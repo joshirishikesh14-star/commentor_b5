@@ -145,7 +145,22 @@ async function handleSaveComment(commentData, tab) {
 
   if (!threadResponse.ok) {
     const errorText = await threadResponse.text();
-    throw new Error(`Failed to create thread: ${errorText}`);
+    let errorMsg = 'Failed to create thread';
+
+    try {
+      const errorJson = JSON.parse(errorText);
+      if (errorJson.code === '42501') {
+        errorMsg = 'Permission denied: You need to be a workspace member or app collaborator to comment. Please ask the app owner to invite you.';
+      } else if (errorJson.message) {
+        errorMsg += ': ' + errorJson.message;
+      } else {
+        errorMsg += ': ' + errorText;
+      }
+    } catch {
+      errorMsg += ': ' + errorText;
+    }
+
+    throw new Error(errorMsg);
   }
 
   const threads = await threadResponse.json();
