@@ -479,6 +479,10 @@ async function checkIfOnCorrectPage() {
   const recordingControls = document.getElementById('recording-controls');
   const domainWarning = document.getElementById('domain-warning');
 
+  console.log('🔍 Echo: Checking page for app:', app.name);
+  console.log('🔍 Echo: App domain:', extractDomain(app.base_url));
+  console.log('🔍 Echo: Current domain:', tab?.url ? extractDomain(tab.url) : 'none');
+
   if (!tab || !tab.url) {
     gotoBtn.classList.remove('hidden');
     recordingControls.classList.add('hidden');
@@ -490,10 +494,12 @@ async function checkIfOnCorrectPage() {
   const appDomain = extractDomain(app.base_url);
 
   if (currentDomain && appDomain && currentDomain === appDomain) {
+    console.log('✅ Echo: On correct domain! Showing recording controls');
     gotoBtn.classList.add('hidden');
     recordingControls.classList.remove('hidden');
     domainWarning.classList.add('hidden');
   } else {
+    console.log('⚠️ Echo: Wrong domain. Showing "Go to Page" button');
     gotoBtn.classList.remove('hidden');
     recordingControls.classList.add('hidden');
     if (currentDomain && appDomain) {
