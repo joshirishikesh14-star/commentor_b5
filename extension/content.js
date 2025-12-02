@@ -1028,6 +1028,10 @@ function captureHTMLSnapshot() {
     timestamp: new Date().toISOString(),
     capturedBy: 'Echo Extension',
     privacyNote: 'Sensitive data (passwords, tokens, PII) automatically redacted',
+    viewportWidth: window.innerWidth,
+    viewportHeight: window.innerHeight,
+    scrollX: window.scrollX,
+    scrollY: window.scrollY,
     styles: Array.from(document.styleSheets).slice(0, 10).map(sheet => {
       try {
         return Array.from(sheet.cssRules).map(rule => rule.cssText).join('\n');

@@ -85,7 +85,9 @@ export function AppDetails() {
   const [viewMode, setViewMode] = useState<'screenshot' | 'live' | 'dom'>('screenshot');
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const domRendererRef = useRef<HTMLIFrameElement>(null);
+  const screenshotRef = useRef<HTMLImageElement>(null);
   const [iframeFailed, setIframeFailed] = useState(false);
+  const [screenshotScale, setScreenshotScale] = useState(1);
   const [htmlSnapshotForPage, setHtmlSnapshotForPage] = useState<any>(null);
   const [showMembersModal, setShowMembersModal] = useState(false);
   const [appCollaborators, setAppCollaborators] = useState<{
@@ -269,6 +271,20 @@ export function AppDetails() {
     window.addEventListener('message', handleMessage);
     return () => window.removeEventListener('message', handleMessage);
   }, [threads]);
+
+  // Handle screenshot resize
+  useEffect(() => {
+    const updateScreenshotScale = () => {
+      if (screenshotRef.current) {
+        const img = screenshotRef.current;
+        const scale = img.clientWidth / img.naturalWidth;
+        setScreenshotScale(scale);
+      }
+    };
+
+    window.addEventListener('resize', updateScreenshotScale);
+    return () => window.removeEventListener('resize', updateScreenshotScale);
+  }, []);
 
   const updateCommentPins = (threadsData: ThreadWithComments[]) => {
     const pins: CommentPin[] = threadsData
@@ -1472,9 +1488,16 @@ export function AppDetails() {
                 /* Screenshot View */
                 <div className="relative inline-block min-w-full">
                   <img
+                    ref={screenshotRef}
                     src={screenshotForPage}
                     alt="Page screenshot"
                     className="w-full h-auto shadow-2xl"
+                    onLoad={(e) => {
+                      const img = e.currentTarget;
+                      const scale = img.clientWidth / img.naturalWidth;
+                      setScreenshotScale(scale);
+                      console.log('📸 Screenshot scale:', scale, 'Display:', img.clientWidth, 'Natural:', img.naturalWidth);
+                    }}
                   />
 
                   {commentPins.map((pin) => {
@@ -1494,8 +1517,8 @@ export function AppDetails() {
                             : 'bg-red-500 hover:bg-red-600'
                         }`}
                         style={{
-                          left: `${pin.x}px`,
-                          top: `${pin.y}px`,
+                          left: `${pin.x * screenshotScale}px`,
+                          top: `${pin.y * screenshotScale}px`,
                           transform: 'translate(-50%, -50%)'
                         }}
                         title={`${thread.comments.length} comment${thread.comments.length !== 1 ? 's' : ''} - ${thread.status}`}

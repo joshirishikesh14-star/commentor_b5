@@ -88,10 +88,16 @@
     }
     
     #content-frame {
-      width: 100%;
-      min-height: 100vh;
       border: none;
       background: white;
+      transform-origin: top left;
+    }
+
+    #content-container {
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background: #f1f5f9;
     }
     
     /* Overlay for comment pins */
@@ -205,8 +211,10 @@
     <p id="error-message">The captured DOM could not be rendered. Please try viewing the screenshot instead.</p>
   </div>
   
-  <iframe id="content-frame" sandbox="allow-same-origin"></iframe>
-  
+  <div id="content-container">
+    <iframe id="content-frame" sandbox="allow-same-origin"></iframe>
+  </div>
+
   <div id="pins-overlay"></div>
   
   <div id="info-banner">
@@ -220,12 +228,16 @@
 
   <script>
     // DOM Renderer - Displays captured HTML snapshots
-    
+
     const loading = document.getElementById('loading');
     const error = document.getElementById('error');
     const errorMessage = document.getElementById('error-message');
     const frame = document.getElementById('content-frame');
+    const container = document.getElementById('content-container');
     const pinsOverlay = document.getElementById('pins-overlay');
+    let currentScale = 1;
+    let viewportWidth = 0;
+    let viewportHeight = 0;
     
     // Get data from parent window or URL params
     let htmlSnapshot = null;
@@ -269,15 +281,23 @@
         showError('No HTML snapshot provided.');
         return;
       }
-      
+
       try {
         // Get the HTML content
         let html = htmlSnapshot.html || htmlSnapshot;
-        
+
         // If it's an object with html property
         if (typeof htmlSnapshot === 'object' && htmlSnapshot.html) {
           html = htmlSnapshot.html;
+          // Get original viewport dimensions
+          viewportWidth = htmlSnapshot.viewportWidth || window.innerWidth;
+          viewportHeight = htmlSnapshot.viewportHeight || window.innerHeight;
+        } else {
+          viewportWidth = window.innerWidth;
+          viewportHeight = window.innerHeight;
         }
+
+        console.log('📐 Original viewport:', viewportWidth, 'x', viewportHeight);
         
         // Inject additional styles to make it look right
         const additionalStyles = `
@@ -304,17 +324,24 @@
           html = additionalStyles + html;
         }
         
+        // Set iframe dimensions to match original viewport
+        frame.style.width = `${viewportWidth}px`;
+        frame.style.height = `${viewportHeight}px`;
+
         // Write to iframe
         const doc = frame.contentDocument || frame.contentWindow.document;
         doc.open();
         doc.write(html);
         doc.close();
-        
+
+        // Wait for iframe to load, then calculate scale
+        frame.onload = () => {
+          calculateScale();
+          renderPins();
+        };
+
         // Hide loading
         loading.classList.add('hidden');
-        
-        // Render comment pins
-        renderPins();
         
         // Notify parent that rendering is complete
         window.parent.postMessage({ type: 'DOM_RENDERED', success: true }, '*');
@@ -325,14 +352,42 @@
       }
     }
     
+    function calculateScale() {
+      // Calculate scale to fit iframe in container
+      const containerWidth = container.clientWidth;
+      const containerHeight = container.clientHeight;
+
+      const scaleX = containerWidth / viewportWidth;
+      const scaleY = containerHeight / viewportHeight;
+      currentScale = Math.min(scaleX, scaleY, 1); // Don't scale up, only down if needed
+
+      // Apply scale transform
+      frame.style.transform = `scale(${currentScale})`;
+
+      // Adjust container to accommodate scaled iframe
+      const scaledWidth = viewportWidth * currentScale;
+      const scaledHeight = viewportHeight * currentScale;
+      frame.style.transformOrigin = 'top left';
+
+      console.log('📏 Scale:', currentScale, 'Container:', containerWidth, 'x', containerHeight);
+    }
+
     function renderPins() {
       pinsOverlay.innerHTML = '';
-      
+
+      // Get iframe position and scale
+      const frameRect = frame.getBoundingClientRect();
+
       commentPins.forEach(pin => {
         const pinEl = document.createElement('div');
         pinEl.className = `comment-pin ${pin.resolved ? 'resolved' : ''}`;
-        pinEl.style.left = `${pin.x}px`;
-        pinEl.style.top = `${pin.y}px`;
+
+        // Apply scale to pin coordinates
+        const scaledX = (pin.x * currentScale) + frameRect.left;
+        const scaledY = (pin.y * currentScale) + frameRect.top;
+
+        pinEl.style.left = `${scaledX}px`;
+        pinEl.style.top = `${scaledY}px`;
         pinEl.textContent = pin.count || '1';
         pinEl.title = `${pin.count || 1} comment${(pin.count || 1) !== 1 ? 's' : ''} - Click to view`;
         
@@ -357,6 +412,18 @@
       window.parent.postMessage({ type: 'DOM_RENDER_ERROR', error: message }, '*');
     }
     
+    // Handle window resize
+    let resizeTimeout;
+    window.addEventListener('resize', () => {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(() => {
+        if (htmlSnapshot) {
+          calculateScale();
+          renderPins();
+        }
+      }, 100);
+    });
+
     // If no message received within 5 seconds, show timeout error
     setTimeout(() => {
       if (!htmlSnapshot && !loading.classList.contains('hidden')) {
