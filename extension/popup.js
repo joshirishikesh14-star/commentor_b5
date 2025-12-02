@@ -461,10 +461,15 @@ async function handleAppSelect(event) {
 function extractDomain(url) {
   try {
     const urlObj = new URL(url);
-    return urlObj.hostname;
+    return normalizeDomain(urlObj.hostname);
   } catch (e) {
     return null;
   }
+}
+
+function normalizeDomain(domain) {
+  if (!domain) return null;
+  return domain.replace(/^www\./, '').toLowerCase();
 }
 
 async function checkIfOnCorrectPage() {

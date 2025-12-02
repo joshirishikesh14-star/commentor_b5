@@ -15,10 +15,15 @@ let matchedApp = null; // NEW: Store matched app for current page
 
 function getCurrentDomain() {
   try {
-    return new URL(window.location.href).hostname;
+    return normalizeDomain(new URL(window.location.href).hostname);
   } catch (e) {
     return null;
   }
+}
+
+function normalizeDomain(domain) {
+  if (!domain) return null;
+  return domain.replace(/^www\./, '').toLowerCase();
 }
 
 // NEW: Auto-detect if current page belongs to a user's app
@@ -55,7 +60,7 @@ async function autoDetectApp() {
     const matched = apps.find(app => {
       if (!app.base_url) return false;
       try {
-        const appDomain = new URL(app.base_url).hostname;
+        const appDomain = normalizeDomain(new URL(app.base_url).hostname);
         return appDomain === currentDomain;
       } catch (e) {
         return false;
@@ -63,13 +68,15 @@ async function autoDetectApp() {
     });
 
     if (matched) {
-      console.log('✅ Echo: Auto-detected app:', matched.name, 'for domain:', currentDomain);
+      console.log('✅ Echo: Auto-detected app:', matched.name, '(ID:', matched.id, ') for domain:', currentDomain);
+      console.log('📱 Echo: App details:', { id: matched.id, name: matched.name, base_url: matched.base_url });
       matchedApp = matched;
-      
+
       // Enter review mode (show comments without recording)
       enterReviewMode(matched);
     } else {
       console.log('🔍 Echo: No matching app for domain:', currentDomain);
+      console.log('📋 Echo: Available apps:', apps.map(a => ({ name: a.name, domain: a.base_url })));
     }
   } catch (error) {
     console.error('❌ Echo: Auto-detect error:', error);
@@ -174,14 +181,26 @@ function enterReviewMode(app) {
   };
 
   // Load and display comments
-  loadExistingComments();
+  await loadExistingComments();
   showReviewFAB();
+  console.log('✅ Echo: Review mode activated, FAB should be visible');
 }
 
 // NEW: Show review mode FAB (different from recording FAB)
 function showReviewFAB() {
-  if (fabButton) return;
+  if (fabButton) {
+    console.log('📌 Echo: FAB button already exists');
+    fabButton.style.display = 'block';
+    return;
+  }
 
+  if (!document.body) {
+    console.log('⏳ Echo: document.body not ready, retrying...');
+    setTimeout(showReviewFAB, 100);
+    return;
+  }
+
+  console.log('📌 Echo: Creating FAB button');
   fabButton = document.createElement('div');
   fabButton.id = 'echo-review-fab';
   fabButton.innerHTML = `
@@ -246,6 +265,7 @@ function showReviewFAB() {
   `;
 
   document.body.appendChild(fabButton);
+  console.log('✅ Echo: FAB button added to DOM');
 
   const mainBtn = fabButton.querySelector('#echo-fab-main');
   const tooltip = fabButton.querySelector('#echo-fab-tooltip');
@@ -367,14 +387,19 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 });
 
 async function loadExistingComments() {
-  if (!activeSession) return;
+  if (!activeSession) {
+    console.log('⚠️ Echo: No active session, skipping comment load');
+    return;
+  }
 
   try {
+    console.log('📥 Echo: Loading comments for app ID:', activeSession.appId);
     const result = await chrome.storage.local.get(['authToken', 'supabaseUrl']);
     const apiUrl = `${result.supabaseUrl || window.SUPABASE_CONFIG.url}/rest/v1`;
     const anonKey = window.SUPABASE_CONFIG.anonKey;
 
     const currentPageUrl = window.location.href;
+    console.log('📍 Echo: Current page URL:', currentPageUrl);
 
     const [pageThreadsResponse, allThreadsResponse] = await Promise.all([
       fetch(
