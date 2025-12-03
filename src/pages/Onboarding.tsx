@@ -61,10 +61,12 @@ export function Onboarding() {
       return;
     }
 
+    // Use function that works for both Supabase and Auth0 users
     const { data, error: createError } = await supabase
-      .rpc('create_workspace_with_member', {
-        workspace_name: workspaceName,
-        workspace_slug: slug,
+      .rpc('create_workspace_with_user_id', {
+        p_user_id: user.id,
+        p_workspace_name: workspaceName,
+        p_workspace_slug: slug,
       });
 
     if (createError) {

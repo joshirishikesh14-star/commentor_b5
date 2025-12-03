@@ -52,26 +52,33 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
         .in('id', workspaceIds)
         .order('created_at', { ascending: false });
 
-      if (workspaceData) {
+      if (workspaceData && workspaceData.length > 0) {
         setWorkspaces(workspaceData);
 
         const savedWorkspaceId = localStorage.getItem('currentWorkspaceId');
         const savedWorkspace = workspaceData.find(w => w.id === savedWorkspaceId);
 
         const initialWorkspace = savedWorkspace || workspaceData[0];
-        setCurrentWorkspace(initialWorkspace);
+        
+        if (initialWorkspace) {
+          setCurrentWorkspace(initialWorkspace);
 
-        const membership = membershipData.find((m: any) => m.workspace_id === initialWorkspace.id);
-        if (membership) {
-          setCurrentMembership({
-            id: '',
-            workspace_id: initialWorkspace.id,
-            user_id: user.id,
-            role: membership.role,
-            invited_by: null,
-            joined_at: new Date().toISOString(),
-          });
+          const membership = membershipData.find((m: any) => m.workspace_id === initialWorkspace.id);
+          if (membership) {
+            setCurrentMembership({
+              id: '',
+              workspace_id: initialWorkspace.id,
+              user_id: user.id,
+              role: membership.role,
+              invited_by: null,
+              joined_at: new Date().toISOString(),
+            });
+          }
         }
+      } else {
+        setWorkspaces([]);
+        setCurrentWorkspace(null);
+        setCurrentMembership(null);
       }
     } catch (error) {
       console.error('Error fetching workspaces:', error);

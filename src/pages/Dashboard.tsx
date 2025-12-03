@@ -137,10 +137,12 @@ export function Dashboard() {
       return;
     }
 
+    // Use different function for Auth0 users (who don't have auth.uid())
     const { data, error: createError } = await supabase
-      .rpc('create_workspace_with_member', {
-        workspace_name: workspaceName,
-        workspace_slug: slug,
+      .rpc('create_workspace_with_user_id', {
+        p_user_id: user.id,
+        p_workspace_name: workspaceName,
+        p_workspace_slug: slug,
       });
 
     if (createError) {

@@ -5,7 +5,10 @@ let auth0Client: Auth0Client | null = null;
 const auth0Config = {
   domain: import.meta.env.VITE_AUTH0_DOMAIN || '',
   clientId: import.meta.env.VITE_AUTH0_CLIENT_ID || '',
-  scope: 'openid profile email',
+  authorizationParams: {
+    redirect_uri: window.location.origin,
+    scope: 'openid profile email',
+  },
   cacheLocation: 'localstorage' as const,
 };
 
@@ -34,8 +37,10 @@ export async function loginWithAuth0(connection?: 'google-oauth2' | 'github') {
   }
 
   await client.loginWithRedirect({
-    // Let Auth0 use the default callback URL from the dashboard
-    ...(connection && { connection }),
+    authorizationParams: {
+      redirect_uri: window.location.origin,
+      ...(connection && { connection }),
+    },
   });
 }
 
@@ -44,7 +49,9 @@ export async function logoutAuth0() {
   if (!client) return;
 
   await client.logout({
-    returnTo: window.location.origin,
+    logoutParams: {
+      returnTo: window.location.origin,
+    },
   });
 }
 
