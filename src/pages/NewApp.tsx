@@ -23,13 +23,6 @@ export function NewApp() {
     setError('');
 
     try {
-      // Check if user is workspace owner
-      if (currentWorkspace.created_by !== user.id) {
-        setError(`Only the workspace owner can create apps. Please contact ${currentWorkspace.name}'s owner or create your own workspace.`);
-        setLoading(false);
-        return;
-      }
-
       const { data: canCreate, error: checkError } = await supabase
         .rpc('can_user_create_app', { user_id: user.id });
 
@@ -88,6 +81,20 @@ export function NewApp() {
         setError(errorMsg);
         setLoading(false);
         return;
+      }
+
+      // Add creator as admin collaborator
+      const { error: collaboratorError } = await supabase
+        .from('app_collaborators')
+        .insert({
+          app_id: data.id,
+          user_id: user.id,
+          access_level: 'admin',
+          invited_by: user.id,
+        });
+
+      if (collaboratorError) {
+        console.error('Failed to add creator as admin:', collaboratorError);
       }
 
       navigate(`/dashboard/apps/${data.id}`);
