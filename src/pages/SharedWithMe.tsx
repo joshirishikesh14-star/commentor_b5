@@ -35,6 +35,19 @@ export function SharedWithMe() {
   const fetchSharedApps = async () => {
     if (!user) return;
 
+    // Get apps where user is a direct collaborator
+    const { data: collaboratorApps, error: collabError } = await supabase
+      .from('app_collaborators')
+      .select('app_id')
+      .eq('user_id', user.id);
+
+    if (collabError) {
+      console.error('Error fetching collaborator apps:', collabError);
+    }
+
+    const collaboratorAppIds = collaboratorApps?.map(c => c.app_id) || [];
+
+    // Get apps where user is a workspace member
     const { data: memberships, error: memberError } = await supabase
       .from('workspace_members')
       .select('role, joined_at, invited_by, workspace_id')
@@ -47,6 +60,40 @@ export function SharedWithMe() {
     }
 
     if (!memberships || memberships.length === 0) {
+      // No workspace memberships, only show collaborator apps
+      if (collaboratorAppIds.length > 0) {
+        const { data: apps, error: appsError } = await supabase
+          .from('apps')
+          .select('*, workspaces!inner(id, name, owner_id)')
+          .in('id', collaboratorAppIds)
+          .neq('owner_id', user.id)
+          .order('created_at', { ascending: false });
+
+        if (!appsError && apps) {
+          const shared: SharedApp[] = apps.map((app: any) => ({
+            app: {
+              id: app.id,
+              name: app.name,
+              base_url: app.base_url,
+              description: app.description,
+              workspace_id: app.workspace_id,
+              owner_id: app.owner_id,
+              created_at: app.created_at,
+              updated_at: app.updated_at,
+              is_active: app.is_active,
+              dom_selector: app.dom_selector,
+            },
+            workspace: app.workspaces,
+            membershipInfo: {
+              role: 'collaborator',
+              joined_at: app.created_at,
+              invited_by_name: null,
+              invited_by_email: null,
+            },
+          }));
+          setSharedApps(shared);
+        }
+      }
       setLoading(false);
       return;
     }
@@ -65,17 +112,20 @@ export function SharedWithMe() {
       return;
     }
 
-    if (!workspaces || workspaces.length === 0) {
+    const sharedWorkspaceIds = workspaces?.map((w) => w.id) || [];
+    const allSharedAppIds = [...new Set([...collaboratorAppIds, ...sharedWorkspaceIds])];
+
+    if (allSharedAppIds.length === 0) {
       setLoading(false);
       return;
     }
 
-    const sharedWorkspaceIds = workspaces.map((w) => w.id);
-
+    // Fetch apps from shared workspaces OR where user is a collaborator (but not owner)
     const { data: apps, error: appsError } = await supabase
       .from('apps')
       .select('*')
-      .in('workspace_id', sharedWorkspaceIds)
+      .or(`workspace_id.in.(${sharedWorkspaceIds.join(',')}),id.in.(${collaboratorAppIds.join(',')})`)
+      .neq('owner_id', user.id)
       .order('created_at', { ascending: false });
 
     if (appsError) {

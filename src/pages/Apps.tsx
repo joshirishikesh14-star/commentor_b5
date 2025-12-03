@@ -45,12 +45,14 @@ export function Apps() {
   };
 
   const fetchApps = async () => {
-    if (!currentWorkspace) return;
+    if (!currentWorkspace || !user) return;
 
+    // Only show apps created by the workspace owner
     const { data: appsData } = await supabase
       .from('apps')
       .select('*')
       .eq('workspace_id', currentWorkspace.id)
+      .eq('owner_id', currentWorkspace.owner_id)
       .order('created_at', { ascending: false });
 
     if (appsData) {
@@ -168,8 +170,8 @@ export function Apps() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900">Apps</h1>
-          <p className="text-slate-600 mt-1">Manage applications you collect feedback on</p>
+          <h1 className="text-3xl font-bold text-slate-900">My Apps</h1>
+          <p className="text-slate-600 mt-1">Apps created by the workspace owner</p>
         </div>
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2 bg-white border border-slate-200 rounded-lg p-1">

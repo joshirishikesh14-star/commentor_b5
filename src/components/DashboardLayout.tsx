@@ -37,7 +37,7 @@ export function DashboardLayout() {
 
   const navigation = [
     { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-    { name: 'Apps', href: '/dashboard/apps', icon: FolderOpen },
+    { name: 'My Apps', href: '/dashboard/apps', icon: FolderOpen },
     { name: 'Shared With Me', href: '/dashboard/shared', icon: Share2 },
     { name: 'Workspace', href: '/dashboard/workspace', icon: Building2 },
     { name: 'Settings', href: '/dashboard/settings', icon: Settings },
