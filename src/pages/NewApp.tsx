@@ -197,10 +197,10 @@ export function NewApp() {
       <div className="bg-blue-50 border border-blue-200 rounded-xl p-6">
         <h3 className="font-semibold text-blue-900 mb-2">Next Steps</h3>
         <ol className="list-decimal list-inside space-y-2 text-sm text-blue-800">
-          <li>After creating your app, you can invite member to review the app</li>
-          <li>All members and yourself can use our Echo extention for your first review</li>
+          <li>After creating your app, you can invite member to review the app.</li>
+          <li>All members and yourself can use our Echo extention for your first review.</li>
           <li>You can find our extention in the chrome webstore or drop a mail to info@analyzthis.ai</li>
-          <li>Login using extentin and find your app and start commenting</li>
+          <li>Login using extentin and find your app and start commenting!!!</li>
         </ol>
       </div>
     </div>
