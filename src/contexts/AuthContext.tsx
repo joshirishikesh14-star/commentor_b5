@@ -41,52 +41,76 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Sync Auth0 user to Supabase and create a proper Supabase session
   // This allows Auth0 users to benefit from Supabase RLS policies
-  const syncAuth0UserToProfile = async (auth0User: any): Promise<{ profileId: string; session: any } | null> => {
+  const syncAuth0UserToProfile = async (auth0User: any): Promise<string | null> => {
     try {
-      console.log('🔄 Creating Supabase session for Auth0 user...');
-      
-      // Call our edge function to create profile + auth user + verification token
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/auth0-create-session`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-          },
-          body: JSON.stringify({ auth0User }),
+      const auth0Id = auth0User.sub; // e.g., "auth0|123456" or "google-oauth2|123456"
+
+      // Check if profile exists with this auth0_id
+      const { data: existingProfile } = await supabase
+        .from('profiles')
+        .select('id, auth0_id')
+        .eq('auth0_id', auth0Id)
+        .maybeSingle();
+
+      if (existingProfile) {
+        // Update existing profile
+        await supabase
+          .from('profiles')
+          .update({
+            email: auth0User.email,
+            full_name: auth0User.name || auth0User.email?.split('@')[0] || 'User',
+            avatar_url: auth0User.picture,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('auth0_id', auth0Id);
+
+        console.log('✅ Auth0 user profile updated:', existingProfile.id);
+        return existingProfile.id;
+      } else {
+        // Check if user exists by email (link existing account)
+        if (auth0User.email) {
+          const { data: emailProfile } = await supabase
+            .from('profiles')
+            .select('id')
+            .eq('email', auth0User.email)
+            .maybeSingle();
+
+          if (emailProfile) {
+            // Link Auth0 to existing profile
+            await supabase
+              .from('profiles')
+              .update({
+                auth0_id: auth0Id,
+                avatar_url: auth0User.picture,
+                updated_at: new Date().toISOString(),
+              })
+              .eq('id', emailProfile.id);
+
+            console.log('✅ Auth0 linked to existing profile:', emailProfile.id);
+            return emailProfile.id;
+          }
         }
-      );
 
-      const result = await response.json();
+        // Create new profile for Auth0 user
+        const { data: newProfile, error } = await supabase
+          .from('profiles')
+          .insert({
+            auth0_id: auth0Id,
+            email: auth0User.email,
+            full_name: auth0User.name || auth0User.email?.split('@')[0] || 'User',
+            avatar_url: auth0User.picture,
+          })
+          .select('id')
+          .single();
 
-      if (!response.ok || !result.success) {
-        console.error('Edge function error:', result);
-        return null;
-      }
-
-      console.log('✅ Profile and auth user created:', result.profileId);
-
-      // If we have a verification token, verify it to create a session
-      if (result.sessionCreated && result.verificationToken) {
-        const { data: sessionData, error: verifyError } = await supabase.auth.verifyOtp({
-          email: auth0User.email,
-          token: result.verificationToken,
-          type: result.verificationType || 'magiclink',
-        });
-
-        if (verifyError || !sessionData.session) {
-          console.error('Error verifying token:', verifyError);
-          // Fallback: return profile ID without session
-          return { profileId: result.profileId, session: null };
+        if (error) {
+          console.error('Error creating Auth0 profile:', error);
+          return null;
         }
 
-        console.log('✅ Supabase session created via token verification');
-        return { profileId: result.profileId, session: sessionData.session };
+        console.log('✅ New Auth0 user profile created:', newProfile.id);
+        return newProfile.id;
       }
-
-      // No session created, return profile ID only
-      return { profileId: result.profileId, session: null };
     } catch (error) {
       console.error('Error syncing Auth0 user:', error);
       return null;
@@ -105,32 +129,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           if (auth0Authenticated) {
             const auth0User = await getAuth0User();
             if (auth0User) {
-              // Sync to profiles and create Supabase session
-              const result = await syncAuth0UserToProfile(auth0User);
-              
-              if (result) {
+              // Sync to profiles
+              const profileId = await syncAuth0UserToProfile(auth0User);
+
+              if (profileId) {
                 const unifiedUser: UnifiedUser = {
-                  id: result.profileId, // Use profile ID
+                  id: profileId, // Use profile ID
                   email: auth0User.email,
                   name: auth0User.name,
                   picture: auth0User.picture,
-                  authProvider: result.session ? 'supabase' : 'auth0', // If we have a Supabase session, use that
+                  authProvider: 'auth0',
                   auth0User,
-                  supabaseUser: result.session?.user,
                 };
-                
+
                 setUser(unifiedUser);
-                setSession(result.session); // Set Supabase session if created
-                
-                if (result.session) {
-                  console.log('✅ Auth0 user now has Supabase session');
-                } else {
-                  console.log('⚠️ Auth0 user without Supabase session (limited functionality)');
-                }
-                
+                setSession(null); // Auth0 users don't have Supabase sessions
+
+                console.log('✅ Auth0 user synced to profile:', profileId);
+
                 // Clean up the URL to remove Auth0 callback parameters
                 window.history.replaceState({}, document.title, window.location.pathname);
-                
+
                 setLoading(false);
                 // Let React Router's RootRedirect handle navigation based on workspace status
               } else {
@@ -201,21 +220,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (auth0Authenticated) {
           const auth0User = await getAuth0User();
           if (auth0User) {
-            const result = await syncAuth0UserToProfile(auth0User);
-            
-            if (result) {
+            const profileId = await syncAuth0UserToProfile(auth0User);
+
+            if (profileId) {
               const unifiedUser: UnifiedUser = {
-                id: result.profileId,
+                id: profileId,
                 email: auth0User.email,
                 name: auth0User.name,
                 picture: auth0User.picture,
-                authProvider: result.session ? 'supabase' : 'auth0',
+                authProvider: 'auth0',
                 auth0User,
-                supabaseUser: result.session?.user,
               };
-              
+
               setUser(unifiedUser);
-              setSession(result.session);
+              setSession(null);
               setLoading(false);
               return;
             }

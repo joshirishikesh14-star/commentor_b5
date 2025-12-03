@@ -34,10 +34,10 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
     }
 
     try {
-      const { data: membershipData, error: membershipError } = await supabase
+      const { data: workspaceData, error: workspaceError } = await supabase
         .rpc('get_user_workspaces', { user_uuid: user.id });
 
-      if (membershipError || !membershipData || membershipData.length === 0) {
+      if (workspaceError || !workspaceData || workspaceData.length === 0) {
         setWorkspaces([]);
         setCurrentWorkspace(null);
         setCurrentMembership(null);
@@ -45,43 +45,46 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
         return;
       }
 
-      const workspaceIds = membershipData.map((m: any) => m.workspace_id);
-      const { data: workspaceData } = await supabase
-        .from('workspaces')
-        .select('*')
-        .in('id', workspaceIds)
-        .order('created_at', { ascending: false });
+      // Convert workspace data to proper format
+      const workspaces = workspaceData.map((w: any) => ({
+        id: w.workspace_id,
+        name: w.name,
+        slug: w.slug,
+        owner_id: w.owner_id,
+        created_at: w.created_at,
+        updated_at: w.updated_at,
+      }));
 
-      if (workspaceData && workspaceData.length > 0) {
-        setWorkspaces(workspaceData);
+      // Sort by updated_at
+      workspaces.sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime());
 
-        const savedWorkspaceId = localStorage.getItem('currentWorkspaceId');
-        const savedWorkspace = workspaceData.find(w => w.id === savedWorkspaceId);
+      setWorkspaces(workspaces);
 
-        const initialWorkspace = savedWorkspace || workspaceData[0];
-        
-        if (initialWorkspace) {
-          setCurrentWorkspace(initialWorkspace);
+      const savedWorkspaceId = localStorage.getItem('currentWorkspaceId');
+      const savedWorkspace = workspaces.find((w: any) => w.id === savedWorkspaceId);
 
-          const membership = membershipData.find((m: any) => m.workspace_id === initialWorkspace.id);
-          if (membership) {
-            setCurrentMembership({
-              id: '',
-              workspace_id: initialWorkspace.id,
-              user_id: user.id,
-              role: membership.role,
-              invited_by: null,
-              joined_at: new Date().toISOString(),
-            });
-          }
+      const initialWorkspace = savedWorkspace || workspaces[0];
+
+      if (initialWorkspace) {
+        setCurrentWorkspace(initialWorkspace);
+
+        const membership = workspaceData.find((w: any) => w.workspace_id === initialWorkspace.id);
+        if (membership) {
+          setCurrentMembership({
+            id: '',
+            workspace_id: initialWorkspace.id,
+            user_id: user.id,
+            role: membership.role,
+            invited_by: null,
+            joined_at: new Date().toISOString(),
+          });
         }
-      } else {
-        setWorkspaces([]);
-        setCurrentWorkspace(null);
-        setCurrentMembership(null);
       }
     } catch (error) {
       console.error('Error fetching workspaces:', error);
+      setWorkspaces([]);
+      setCurrentWorkspace(null);
+      setCurrentMembership(null);
     }
 
     setLoading(false);
@@ -99,7 +102,7 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
         .rpc('get_user_workspaces', { user_uuid: user.id })
         .then(({ data }) => {
           if (data) {
-            const membership = data.find((m: any) => m.workspace_id === currentWorkspace.id);
+            const membership = data.find((w: any) => w.workspace_id === currentWorkspace.id);
             if (membership) {
               setCurrentMembership({
                 id: '',
