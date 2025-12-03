@@ -15,6 +15,7 @@
     "package-extension": "bash scripts/package-extension.sh"
   },
   "dependencies": {
+    "@auth0/auth0-spa-js": "^2.1.3",
     "@supabase/supabase-js": "^2.57.4",
     "html2canvas": "^1.4.1",
     "lucide-react": "^0.344.0",
